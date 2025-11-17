@@ -11,18 +11,33 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private string _tokenDisplay;
 
+    [ObservableProperty]
+    private bool _isLoggedIn;
+
     public LoginViewModel(KeycloakAuthService auth)
     {
         _auth = auth;
+    }
+
+    public void UpdateAuthState()
+    {
+        IsLoggedIn = _auth.IsAuthenticated;
     }
 
     [RelayCommand]
     private async Task Login()
     {
         if (await _auth.LoginAsync())
+        {
             TokenDisplay = _auth.AccessToken;
+            await Shell.Current.GoToAsync("//MainPage");
+        }
         else
+        {
             TokenDisplay = "Login failed";
+        }
+        
+        UpdateAuthState();
     }
 
     [RelayCommand]
@@ -30,5 +45,6 @@ public partial class LoginViewModel : ObservableObject
     {
         await _auth.LogoutAsync();
         TokenDisplay = "Logged out";
+        UpdateAuthState();
     }
 }

@@ -34,11 +34,13 @@ public static class DI
         public void RegisterViewModels()
         {
             services.AddTransient<LoginViewModel>();
+            services.AddTransient<MainViewModel>();
         }
 
         public void RegisterViews()
         {
             services.AddTransient<LoginPage>();
+            services.AddTransient<MainPage>();
         }
     }
 }
