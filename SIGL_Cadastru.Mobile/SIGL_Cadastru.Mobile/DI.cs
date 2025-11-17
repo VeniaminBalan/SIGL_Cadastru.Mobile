@@ -1,4 +1,5 @@
-﻿using SIGL_Cadastru.Mobile.Services;
+﻿using Duende.IdentityModel.OidcClient;
+using SIGL_Cadastru.Mobile.Services;
 using SIGL_Cadastru.Mobile.ViewModels;
 using SIGL_Cadastru.Mobile.Views;
 
@@ -11,6 +12,23 @@ public static class DI
         public void RegisterServices()
         {
             services.AddSingleton<AuthService>();
+            services.AddSingleton<Duende.IdentityModel.OidcClient.Browser.IBrowser, WebAuthenticatorBrowser>();
+
+            services.AddSingleton(sp =>
+            {
+                return new OidcClient(new OidcClientOptions
+                {
+                    Authority = "https://auth.vbtm.live/realms/sigl-dev",
+                    ClientId = "mobile",
+                    Scope = "openid profile email offline_access",
+                    RedirectUri = "sigl.mobile://callback",
+                    PostLogoutRedirectUri = "sigl.mobile://callback",
+                    Browser = sp.GetRequiredService<Duende.IdentityModel.OidcClient.Browser.IBrowser>(),
+                    LoadProfile = true
+                });
+            });
+
+            services.AddSingleton<KeycloakAuthService>();
         }
 
         public void RegisterViewModels()

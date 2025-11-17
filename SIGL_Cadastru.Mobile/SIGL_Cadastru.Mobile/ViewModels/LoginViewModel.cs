@@ -6,45 +6,29 @@ namespace SIGL_Cadastru.Mobile.ViewModels;
 
 public partial class LoginViewModel : ObservableObject
 {
-    private readonly AuthService authService;
+    private readonly KeycloakAuthService _auth;
 
-    public LoginViewModel(AuthService service)
+    [ObservableProperty]
+    private string _tokenDisplay;
+
+    public LoginViewModel(KeycloakAuthService auth)
     {
-        authService = service;
+        _auth = auth;
     }
-
-
-    [ObservableProperty]
-    private string username;
-
-    [ObservableProperty]
-    private string password;
-
-    [ObservableProperty]
-    private bool isBusy;
-
-    [ObservableProperty]
-    private string message;
 
     [RelayCommand]
     private async Task Login()
     {
-        if (IsBusy)
-            return;
-
-        IsBusy = true;
-
-        var user = await authService.LoginAsync(Username, Password);
-
-        if (user is not null)
-        {
-            Message = $"Welcome, {user.Username}";
-        }
+        if (await _auth.LoginAsync())
+            TokenDisplay = _auth.AccessToken;
         else
-        {
-            Message = "Invalid credentials";
-        }
+            TokenDisplay = "Login failed";
+    }
 
-        IsBusy = false;
+    [RelayCommand]
+    private async Task Logout()
+    {
+        await _auth.LogoutAsync();
+        TokenDisplay = "Logged out";
     }
 }

@@ -19,7 +19,7 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>SIGL_Cadastru.Mobile</ApplicationTitle>
+		<ApplicationTitle>SIGL Cadastru</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.sigl_cadastru.mobile</ApplicationId>
@@ -61,6 +61,8 @@
 		<PackageReference Include="CommunityToolkit.Maui" Version="13.0.0" />
 		<PackageReference Include="CommunityToolkit.Maui.Markup" Version="7.0.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="Duende.IdentityModel.OidcClient" Version="6.0.1" />
+		<PackageReference Include="Duende.IdentityModel.OidcClient.Extensions" Version="6.0.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.10" />
 		<PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.10" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
