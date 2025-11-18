@@ -7,14 +7,29 @@
     xmlns:views="clr-namespace:SIGL_Cadastru.Mobile.Views"
     Title="SIGL_Cadastru.Mobile">
 
-    <ShellContent
+    <FlyoutItem 
         Title="Home"
         ContentTemplate="{DataTemplate views:MainPage}"
-        Route="MainPage" />
+        Route="MainPage">
+        
+        <ShellContent
+            Title="Requests"
+            ContentTemplate="{DataTemplate views:RequestsPage}"
+            Route="RequestsPage" />
 
-    <ShellContent
-        Title="Login"
-        ContentTemplate="{DataTemplate views:LoginPage}"
-        Route="LoginPage" />
+        <ShellContent
+            Title="Clients"
+            ContentTemplate="{DataTemplate views:ClientsPage}"
+            Route="ClientsPage" />
 
+        <ShellContent
+            Title="Profile"
+            ContentTemplate="{DataTemplate views:ProfilePage}"
+            Route="ProfilePage" />
+
+    </FlyoutItem>
+        <ShellContent
+            Title="Login"
+            ContentTemplate="{DataTemplate views:LoginPage}"
+            Route="LoginPage" />
 </Shell>

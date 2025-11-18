@@ -35,12 +35,18 @@ public static class DI
         {
             services.AddTransient<LoginViewModel>();
             services.AddTransient<MainViewModel>();
+            services.AddTransient<RequestsViewModel>();
+            services.AddTransient<ClientsViewModel>();
+            services.AddTransient<ProfileViewModel>();
         }
 
         public void RegisterViews()
         {
             services.AddTransient<LoginPage>();
             services.AddTransient<MainPage>();
+            services.AddTransient<RequestsPage>();
+            services.AddTransient<ClientsPage>();
+            services.AddTransient<ProfilePage>();
         }
     }
 }
