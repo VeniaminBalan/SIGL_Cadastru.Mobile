@@ -60,7 +60,7 @@ public class RequestsPage : ContentPage
                         ItemTemplate = CreateRequestTemplate(),
                         Margin = new Thickness(0,0,0,0),
                         RemainingItemsThreshold = 5,
-                        SelectionMode = SelectionMode.Single,
+                        SelectionMode = SelectionMode.None,
                         Footer = new ActivityIndicator()
                             .Center()
                             .Margins(10)
@@ -69,17 +69,6 @@ public class RequestsPage : ContentPage
                     }
                     .Bind(CollectionView.ItemsSourceProperty, nameof(RequestsViewModel.Requests))
                     .Bind(CollectionView.RemainingItemsThresholdReachedCommandProperty, nameof(RequestsViewModel.LoadMoreRequestsCommand))
-                    .Invoke(cv => cv.SelectionChanged += (s, e) => 
-                    {
-                        if (e.CurrentSelection.FirstOrDefault() is Models.Requests.CadastralRequestDto request)
-                        {
-                            _vm.NavigateToRequestCommand.Execute(request);
-                            if (s is CollectionView collectionView)
-                            {
-                                collectionView.SelectedItem = null; // Clear selection
-                            }
-                        }
-                    })
                 }
                 .Bind(RefreshView.CommandProperty, nameof(RequestsViewModel.LoadRequestsCommand))
                 .Bind(RefreshView.IsRefreshingProperty, nameof(RequestsViewModel.IsLoading))
@@ -157,7 +146,8 @@ public class RequestsPage : ContentPage
     private DataTemplate CreateRequestTemplate()
     {
         return new DataTemplate(() =>
-            new Border
+        {
+            var border = new Border
             {
                 Padding = 12,
                 Margin = new Thickness(0, 6),
@@ -201,8 +191,22 @@ public class RequestsPage : ContentPage
                         }
                     }
                 }
-            }
-        );
+            };
+
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += async (s, e) =>
+            {
+                if (border.BindingContext is Models.Requests.CadastralRequestDto request)
+                {
+                    await border.ScaleToAsync(0.95, 80, Easing.CubicOut);
+                    await border.ScaleToAsync(1.0, 80, Easing.CubicIn);
+                    _vm.NavigateToRequestCommand.Execute(request);
+                }
+            };
+            border.GestureRecognizers.Add(tapGesture);
+
+            return border;
+        });
     }
 
     private async Task ShowFilterModal()
