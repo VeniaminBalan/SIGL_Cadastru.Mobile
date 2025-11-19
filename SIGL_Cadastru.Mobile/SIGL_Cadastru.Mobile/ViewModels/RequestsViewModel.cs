@@ -23,6 +23,18 @@ public partial class RequestsViewModel : ObservableObject
     [ObservableProperty]
     private string? _errorMessage;
 
+    [ObservableProperty]
+    private string? _searchText;
+
+    [ObservableProperty]
+    private string? _filterBy;
+
+    [ObservableProperty]
+    private string _orderBy = "AvailableFrom";
+
+    [ObservableProperty]
+    private string _direction = "desc";
+
     public RequestsViewModel(IRequestService requestService)
     {
         _requestService = requestService;
@@ -58,10 +70,12 @@ public partial class RequestsViewModel : ObservableObject
 
             var parameters = new RequestQueryParameters
             {
+                SearchBy = string.IsNullOrWhiteSpace(SearchText) ? null : SearchText,
+                FilterBy = string.IsNullOrWhiteSpace(FilterBy) ? null : FilterBy,
                 PageNumber = 1,
                 PageSize = 10,
-                OrderBy = "AvailableFrom",
-                Direction = "desc"
+                OrderBy = OrderBy,
+                Direction = Direction
             };
 
             var requestsList = await _requestService.GetRequestsAsync(parameters);

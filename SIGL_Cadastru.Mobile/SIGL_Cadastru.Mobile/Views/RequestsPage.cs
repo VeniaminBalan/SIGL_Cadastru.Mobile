@@ -26,13 +26,15 @@ public class RequestsPage : ContentPage
             Padding = 20,
             RowDefinitions =
             {
-                new RowDefinition { Height = GridLength.Auto }, // Header
+                new RowDefinition { Height = GridLength.Auto }, // Filter Controls
                 new RowDefinition { Height = GridLength.Auto }, // Error
                 new RowDefinition { Height = GridLength.Star }  // Content
             },
 
             Children =
             {
+                // Filter Controls
+                BuildFilterControls().Row(0),
                 // Error message
                 new Label()
                     .TextColor(Colors.Red)
@@ -64,6 +66,63 @@ public class RequestsPage : ContentPage
                 .Bind(RefreshView.IsRefreshingProperty, nameof(RequestsViewModel.IsLoading))
                 .Bind(IsVisibleProperty, nameof(RequestsViewModel.IsLoading), convert: (bool loading) => !loading)
                 .Row(2)
+            }
+        };
+    }
+
+    private View BuildFilterControls()
+    {
+        return new VerticalStackLayout
+        {
+            Spacing = 10,
+            Margin = new Thickness(0, 0, 0, 15),
+            Children =
+            {
+                // Search Entry
+                new Entry
+                {
+                    ClearButtonVisibility = ClearButtonVisibility.WhileEditing
+                }
+                .Bind(Entry.TextProperty, nameof(RequestsViewModel.SearchText))
+                .Bind(Entry.ReturnCommandProperty, nameof(RequestsViewModel.LoadRequestsCommand)),
+
+                // Filter and Sort Row
+                new HorizontalStackLayout
+                {
+                    Spacing = 10,
+                    Children =
+                    {
+                        new Entry
+                        {
+                            WidthRequest = 150,
+                            ClearButtonVisibility = ClearButtonVisibility.WhileEditing
+                        }
+                        .Bind(Entry.TextProperty, nameof(RequestsViewModel.FilterBy)),
+
+                        new Picker
+                        {
+                            Title = "Sort By",
+                            WidthRequest = 130,
+                            ItemsSource = new List<string> { "AvailableFrom", "Number", "CurrentState" },
+                        }
+                        .Bind(Picker.SelectedItemProperty, nameof(RequestsViewModel.OrderBy)),
+
+                        new Picker
+                        {
+                            Title = "Order",
+                            WidthRequest = 80,
+                            ItemsSource = new List<string> { "asc", "desc" },
+                        }
+                        .Bind(Picker.SelectedItemProperty, nameof(RequestsViewModel.Direction)),
+
+                        new Button
+                        {
+                            Text = "Search",
+                            WidthRequest = 80
+                        }
+                        .Bind(Button.CommandProperty, nameof(RequestsViewModel.LoadRequestsCommand))
+                    }
+                }
             }
         };
     }
