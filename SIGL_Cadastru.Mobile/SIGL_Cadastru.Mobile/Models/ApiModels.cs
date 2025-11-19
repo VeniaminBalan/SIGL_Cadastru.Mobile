@@ -27,6 +27,25 @@ public enum RoleType
     Role3 = 3
 }
 
+// Paged Response
+public class PagedResponse<T>
+{
+    public int PageNumber { get; private set; }
+    public int PageSize { get; private set; }
+    public int TotalPages { get; private set; }
+    public int TotalRecords { get; private set; }
+    public IEnumerable<T> Data { get; private set; }
+    
+    public PagedResponse(IEnumerable<T> data, int pageNumber, int pageSize, int totalRecords)
+    {
+        this.Data = data;
+        this.PageNumber = pageNumber;
+        this.PageSize = pageSize;
+        this.TotalRecords = totalRecords;
+        this.TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+    }
+}
+
 // Client Models
 public class ClientDto
 {

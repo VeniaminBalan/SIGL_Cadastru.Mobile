@@ -27,10 +27,4 @@ public partial class ClientsViewModel : ObservableObject
         await Task.Delay(100);
         IsLoading = false;
     }
-
-    [RelayCommand]
-    private async Task NavigateBack()
-    {
-        await Shell.Current.GoToAsync("..");
-    }
 }

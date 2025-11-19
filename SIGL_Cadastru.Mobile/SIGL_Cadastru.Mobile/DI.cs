@@ -43,7 +43,7 @@ public static class DI
                 var httpClient = new HttpClient
                 {
                     // TODO: Replace with actual API base URL
-                    BaseAddress = new Uri("https://api.vbtm.live")
+                    BaseAddress = new Uri("http://192.168.1.134:5000")
                 };
                 httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
                 return httpClient;
@@ -58,15 +58,11 @@ public static class DI
             services.AddSingleton<IMigrationService, MigrationService>();
             services.AddSingleton<IRequestService, RequestService>();
             services.AddSingleton<IUserService, UserService>();
-
-            // Keep legacy combined service for backward compatibility (optional)
-            services.AddSingleton<ISiglApiService, SiglApiService>();
         }
 
         public void RegisterViewModels()
         {
             services.AddTransient<LoginViewModel>();
-            services.AddTransient<MainViewModel>();
             services.AddTransient<RequestsViewModel>();
             services.AddTransient<ClientsViewModel>();
             services.AddTransient<ProfileViewModel>();
@@ -75,7 +71,6 @@ public static class DI
         public void RegisterViews()
         {
             services.AddTransient<LoginPage>();
-            services.AddTransient<MainPage>();
             services.AddTransient<RequestsPage>();
             services.AddTransient<ClientsPage>();
             services.AddTransient<ProfilePage>();

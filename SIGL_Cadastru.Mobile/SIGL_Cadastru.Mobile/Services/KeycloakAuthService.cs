@@ -74,6 +74,15 @@ public class KeycloakAuthService
         }
     }
 
+    public async Task InvalidateTokensAsync()
+    {
+        _logger.LogInformation("Invalidating tokens");
+        AccessToken = null;
+        RefreshToken = null;
+        IdentityToken = null;
+        await ClearTokensAsync();
+    }
+
     public async Task<bool> LoginAsync()
     {
         _logger.LogInformation("Starting login process");
@@ -119,15 +128,29 @@ public class KeycloakAuthService
             return false;
         }
 
-        _logger.LogInformation("Refreshing access token");
-        var result = await _client.RefreshTokenAsync(RefreshToken);
+        try
+        {
+            _logger.LogInformation("Refreshing access token");
+            var result = await _client.RefreshTokenAsync(RefreshToken);
 
-        AccessToken = result.AccessToken;
-        RefreshToken = result.RefreshToken;
+            if (result.IsError)
+            {
+                _logger.LogError("Token refresh failed: {Error}", result.Error);
+                return false;
+            }
 
-        await SaveTokensAsync();
-        _logger.LogInformation("Token refresh successful");
-        return true;
+            AccessToken = result.AccessToken;
+            RefreshToken = result.RefreshToken;
+
+            await SaveTokensAsync();
+            _logger.LogInformation("Token refresh successful");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception during token refresh");
+            return false;
+        }
     }
 
     public string GetUserName()

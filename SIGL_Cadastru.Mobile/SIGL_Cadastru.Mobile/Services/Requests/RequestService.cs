@@ -28,7 +28,8 @@ public class RequestService : BaseApiService, IRequestService
 
         var response = await client.GetAsync($"/api/Requests{query}");
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<CadastralRequestDto>>(JsonOptions) ?? new();
+        var pagedResponse = await response.Content.ReadFromJsonAsync<Models.PagedResponse<CadastralRequestDto>>(JsonOptions);
+        return pagedResponse?.Data?.ToList() ?? new();
     }
 
     public async Task<DetailedCadastralRequest> CreateRequestAsync(CreateCadastralRequestCommand command)

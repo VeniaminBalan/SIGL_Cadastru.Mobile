@@ -1,36 +1,84 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using SIGL_Cadastru.Mobile.Services;
+using SIGL_Cadastru.Mobile.Models.Requests;
+using SIGL_Cadastru.Mobile.Models.Shared;
+using SIGL_Cadastru.Mobile.Services.Requests;
 
 namespace SIGL_Cadastru.Mobile.ViewModels;
 
 public partial class RequestsViewModel : ObservableObject
 {
-    private readonly KeycloakAuthService _authService;
+    private readonly IRequestService _requestService;
 
     [ObservableProperty]
-    private string _pageTitle = "Requests";
+    private string _pageTitle = "Top 10 Requests";
 
     [ObservableProperty]
     private bool _isLoading;
 
-    public RequestsViewModel(KeycloakAuthService authService)
+    [ObservableProperty]
+    private ObservableCollection<CadastralRequestDto> _requests = new();
+
+    [ObservableProperty]
+    private string? _errorMessage;
+
+    public RequestsViewModel(IRequestService requestService)
     {
-        _authService = authService;
+        _requestService = requestService;
     }
 
     [RelayCommand]
     public async Task Initialize()
     {
-        IsLoading = true;
-        // TODO: Load requests data
-        await Task.Delay(100);
-        IsLoading = false;
+        await LoadRequestsAsync();
     }
 
     [RelayCommand]
-    private async Task NavigateBack()
+    public async Task LoadRequests()
     {
-        await Shell.Current.GoToAsync("..");
+        await LoadRequestsAsync();
+    }
+
+    [RelayCommand]
+    private async Task NavigateToRequest(CadastralRequestDto request)
+    {
+        if (request?.Id != null)
+        {
+            await Shell.Current.GoToAsync($"RequestDetailPage?RequestId={request.Id}");
+        }
+    }
+
+    private async Task LoadRequestsAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            var parameters = new RequestQueryParameters
+            {
+                PageNumber = 1,
+                PageSize = 10,
+                OrderBy = "AvailableFrom",
+                Direction = "desc"
+            };
+
+            var requestsList = await _requestService.GetRequestsAsync(parameters);
+            
+            Requests.Clear();
+            foreach (var request in requestsList)
+            {
+                Requests.Add(request);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load requests: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 }

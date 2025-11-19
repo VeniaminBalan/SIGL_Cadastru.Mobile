@@ -40,10 +40,6 @@ public class ProfilePage : ContentPage
                     .Bind(Label.TextProperty, nameof(ProfileViewModel.Email))
                     .FontSize(16)
                     .Center(),
-
-                new Button()
-                    .Text("Back")
-                    .Bind(Button.CommandProperty, nameof(ProfileViewModel.NavigateBackCommand))
             }
         };
     }

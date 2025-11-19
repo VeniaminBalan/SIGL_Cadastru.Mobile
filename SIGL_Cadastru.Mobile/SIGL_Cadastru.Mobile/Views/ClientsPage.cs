@@ -30,10 +30,6 @@ public class ClientsPage : ContentPage
                     .Text("Your clients will appear here")
                     .FontSize(16)
                     .Center(),
-
-                new Button()
-                    .Text("Back")
-                    .Bind(Button.CommandProperty, nameof(ClientsViewModel.NavigateBackCommand))
             }
         };
     }
