@@ -1,4 +1,5 @@
 ﻿using Duende.IdentityModel.OidcClient;
+using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 
@@ -7,6 +8,7 @@ namespace SIGL_Cadastru.Mobile.Services;
 public class KeycloakAuthService
 {
     private readonly OidcClient _client;
+    private readonly ILogger<KeycloakAuthService> _logger;
     private const string AccessTokenKey = "access_token";
     private const string RefreshTokenKey = "refresh_token";
     private const string IdentityTokenKey = "identity_token";
@@ -17,9 +19,10 @@ public class KeycloakAuthService
 
     public bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
 
-    public KeycloakAuthService(OidcClient client)
+    public KeycloakAuthService(OidcClient client, ILogger<KeycloakAuthService> logger)
     {
         _client = client;
+        _logger = logger;
         _ = LoadTokensAsync();
     }
 
@@ -30,10 +33,11 @@ public class KeycloakAuthService
             AccessToken = await SecureStorage.GetAsync(AccessTokenKey);
             RefreshToken = await SecureStorage.GetAsync(RefreshTokenKey);
             IdentityToken = await SecureStorage.GetAsync(IdentityTokenKey);
+            _logger.LogInformation("Tokens loaded from secure storage");
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors during token loading
+            _logger.LogError(ex, "Failed to load tokens from secure storage");
         }
     }
 
@@ -47,10 +51,11 @@ public class KeycloakAuthService
                 await SecureStorage.SetAsync(RefreshTokenKey, RefreshToken);
             if (!string.IsNullOrEmpty(IdentityToken))
                 await SecureStorage.SetAsync(IdentityTokenKey, IdentityToken);
+            _logger.LogInformation("Tokens saved to secure storage");
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors during token saving
+            _logger.LogError(ex, "Failed to save tokens to secure storage");
         }
     }
 
@@ -61,30 +66,37 @@ public class KeycloakAuthService
             SecureStorage.Remove(AccessTokenKey);
             SecureStorage.Remove(RefreshTokenKey);
             SecureStorage.Remove(IdentityTokenKey);
+            _logger.LogInformation("Tokens cleared from secure storage");
         }
-        catch
+        catch (Exception ex)
         {
-            // Ignore errors during token clearing
+            _logger.LogError(ex, "Failed to clear tokens from secure storage");
         }
     }
 
     public async Task<bool> LoginAsync()
     {
+        _logger.LogInformation("Starting login process");
         var result = await _client.LoginAsync();
 
         if (result.IsError)
+        {
+            _logger.LogError("Login failed: {Error}", result.Error);
             return false;
+        }
 
         AccessToken = result.AccessToken;
         RefreshToken = result.RefreshToken;
         IdentityToken = result.IdentityToken;
         
         await SaveTokensAsync();
+        _logger.LogInformation("Login successful");
         return true;
     }
 
     public async Task LogoutAsync()
     {
+        _logger.LogInformation("Starting logout process");
         await _client.LogoutAsync(new LogoutRequest
         {
             IdTokenHint = IdentityToken,
@@ -96,19 +108,25 @@ public class KeycloakAuthService
         IdentityToken = null;
         
         await ClearTokensAsync();
+        _logger.LogInformation("Logout successful");
     }
 
     public async Task<bool> RefreshAsync()
     {
         if (string.IsNullOrEmpty(RefreshToken))
+        {
+            _logger.LogWarning("Cannot refresh token: RefreshToken is null or empty");
             return false;
+        }
 
+        _logger.LogInformation("Refreshing access token");
         var result = await _client.RefreshTokenAsync(RefreshToken);
 
         AccessToken = result.AccessToken;
         RefreshToken = result.RefreshToken;
 
         await SaveTokensAsync();
+        _logger.LogInformation("Token refresh successful");
         return true;
     }
 
@@ -125,8 +143,9 @@ public class KeycloakAuthService
             var nameClaim = token.Claims.FirstOrDefault(c => c.Type == "preferred_username" || c.Type == "name" || c.Type == "sub");
             return nameClaim?.Value ?? "User";
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to extract username from access token");
             return "User";
         }
     }

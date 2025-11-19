@@ -1,5 +1,13 @@
 ﻿using Duende.IdentityModel.OidcClient;
 using SIGL_Cadastru.Mobile.Services;
+using SIGL_Cadastru.Mobile.Services.Accounts;
+using SIGL_Cadastru.Mobile.Services.Analytics;
+using SIGL_Cadastru.Mobile.Services.Clients;
+using SIGL_Cadastru.Mobile.Services.Documents;
+using SIGL_Cadastru.Mobile.Services.Files;
+using SIGL_Cadastru.Mobile.Services.Migrations;
+using SIGL_Cadastru.Mobile.Services.Requests;
+using SIGL_Cadastru.Mobile.Services.Users;
 using SIGL_Cadastru.Mobile.ViewModels;
 using SIGL_Cadastru.Mobile.Views;
 
@@ -11,7 +19,6 @@ public static class DI
     {
         public void RegisterServices()
         {
-            services.AddSingleton<AuthService>();
             services.AddSingleton<Duende.IdentityModel.OidcClient.Browser.IBrowser, WebAuthenticatorBrowser>();
 
             services.AddSingleton(sp =>
@@ -29,6 +36,31 @@ public static class DI
             });
 
             services.AddSingleton<KeycloakAuthService>();
+
+            // Configure HttpClient for API services
+            services.AddSingleton<HttpClient>(sp =>
+            {
+                var httpClient = new HttpClient
+                {
+                    // TODO: Replace with actual API base URL
+                    BaseAddress = new Uri("https://api.vbtm.live")
+                };
+                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+                return httpClient;
+            });
+
+            // Register domain-specific API services
+            services.AddSingleton<IAccountService, AccountService>();
+            services.AddSingleton<IAnalyticsService, AnalyticsService>();
+            services.AddSingleton<IClientService, ClientService>();
+            services.AddSingleton<IDocumentService, DocumentService>();
+            services.AddSingleton<IFileService, FileService>();
+            services.AddSingleton<IMigrationService, MigrationService>();
+            services.AddSingleton<IRequestService, RequestService>();
+            services.AddSingleton<IUserService, UserService>();
+
+            // Keep legacy combined service for backward compatibility (optional)
+            services.AddSingleton<ISiglApiService, SiglApiService>();
         }
 
         public void RegisterViewModels()
