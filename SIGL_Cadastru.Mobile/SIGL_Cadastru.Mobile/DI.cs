@@ -37,10 +37,16 @@ public static class DI
 
             services.AddSingleton<KeycloakAuthService>();
 
-            // Configure HttpClient for API services
+            // Register the authenticated HTTP message handler
+            services.AddTransient<AuthenticatedHttpMessageHandler>();
+
+            // Configure HttpClient for API services with authentication
             services.AddSingleton<HttpClient>(sp =>
             {
-                var httpClient = new HttpClient
+                var authHandler = sp.GetRequiredService<AuthenticatedHttpMessageHandler>();
+                authHandler.InnerHandler = new HttpClientHandler();
+
+                var httpClient = new HttpClient(authHandler)
                 {
                     // TODO: Replace with actual API base URL
                     BaseAddress = new Uri("http://192.168.1.134:5000")
@@ -64,6 +70,7 @@ public static class DI
         {
             services.AddTransient<LoginViewModel>();
             services.AddTransient<RequestsViewModel>();
+            services.AddTransient<RequestDetailViewModel>();
             services.AddTransient<ClientsViewModel>();
             services.AddTransient<ProfileViewModel>();
         }
@@ -72,6 +79,7 @@ public static class DI
         {
             services.AddTransient<LoginPage>();
             services.AddTransient<RequestsPage>();
+            services.AddTransient<RequestDetailPage>();
             services.AddTransient<ClientsPage>();
             services.AddTransient<ProfilePage>();
         }

@@ -15,6 +15,12 @@ public class RequestService : BaseApiService, IRequestService
 
     public async Task<List<CadastralRequestDto>> GetRequestsAsync(RequestQueryParameters? parameters = null)
     {
+        var pagedResponse = await GetRequestsPagedAsync(parameters);
+        return pagedResponse.Data?.ToList() ?? new();
+    }
+
+    public async Task<Models.PagedResponse<CadastralRequestDto>> GetRequestsPagedAsync(RequestQueryParameters? parameters = null)
+    {
         var client = await GetAuthenticatedClientAsync();
         var query = parameters != null ? BuildQueryString(new Dictionary<string, string?>
         {
@@ -29,7 +35,7 @@ public class RequestService : BaseApiService, IRequestService
         var response = await client.GetAsync($"/api/Requests{query}");
         response.EnsureSuccessStatusCode();
         var pagedResponse = await response.Content.ReadFromJsonAsync<Models.PagedResponse<CadastralRequestDto>>(JsonOptions);
-        return pagedResponse?.Data?.ToList() ?? new();
+        return pagedResponse ?? new Models.PagedResponse<CadastralRequestDto>(new List<CadastralRequestDto>(), 1, 10, 0);
     }
 
     public async Task<DetailedCadastralRequest> CreateRequestAsync(CreateCadastralRequestCommand command)

@@ -7,6 +7,8 @@ namespace SIGL_Cadastru.Mobile
         public AppShell()
         {
             InitializeComponent();
+
+            Routing.RegisterRoute(nameof(RequestDetailPage), typeof(RequestDetailPage));
         }
     }
 }

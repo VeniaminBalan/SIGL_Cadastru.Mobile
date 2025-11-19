@@ -9,6 +9,7 @@ namespace SIGL_Cadastru.Mobile.Services.Requests;
 public interface IRequestService
 {
     Task<List<CadastralRequestDto>> GetRequestsAsync(RequestQueryParameters? parameters = null);
+    Task<Models.PagedResponse<CadastralRequestDto>> GetRequestsPagedAsync(RequestQueryParameters? parameters = null);
     Task<DetailedCadastralRequest> CreateRequestAsync(CreateCadastralRequestCommand command);
     Task<DetailedCadastralRequest> GetRequestByIdAsync(string id);
     Task UpdateRequestAsync(string id, string updateData);
