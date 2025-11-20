@@ -30,6 +30,7 @@ public class AuthenticatedHttpMessageHandler : DelegatingHandler
         }
         else
         {
+            request.Headers.Authorization = null;
             _logger.LogWarning("No access token available for request: {Method} {Uri}", request.Method, request.RequestUri);
         }
 

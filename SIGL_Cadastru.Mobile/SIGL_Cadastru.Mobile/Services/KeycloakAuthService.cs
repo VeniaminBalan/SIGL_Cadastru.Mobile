@@ -105,19 +105,39 @@ public class KeycloakAuthService
 
     public async Task LogoutAsync()
     {
-        _logger.LogInformation("Starting logout process");
-        await _client.LogoutAsync(new LogoutRequest
+        try
         {
-            IdTokenHint = IdentityToken,
-            BrowserDisplayMode = Duende.IdentityModel.OidcClient.Browser.DisplayMode.Visible
-        });
+            _logger.LogInformation("Starting logout process");
+            
+            if (!string.IsNullOrEmpty(IdentityToken))
+            {
+                await _client.LogoutAsync(new LogoutRequest
+                {
+                    IdTokenHint = IdentityToken,
+                    BrowserDisplayMode = Duende.IdentityModel.OidcClient.Browser.DisplayMode.Visible
+                });
+            }
+            else
+            {
+                _logger.LogWarning("IdentityToken is null or empty, skipping server logout");
+            }
 
-        AccessToken = null;
-        RefreshToken = null;
-        IdentityToken = null;
-        
-        await ClearTokensAsync();
-        _logger.LogInformation("Logout successful");
+            AccessToken = null;
+            RefreshToken = null;
+            IdentityToken = null;
+
+            await ClearTokensAsync();
+            _logger.LogInformation("Logout successful");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Logout failed, but proceeding to clear tokens locally");
+            
+            AccessToken = null;
+            RefreshToken = null;
+            IdentityToken = null;
+            await ClearTokensAsync();
+        }
     }
 
     public async Task<bool> RefreshAsync()

@@ -30,7 +30,7 @@ public partial class LoginViewModel : ObservableObject
         if (await _auth.LoginAsync())
         {
             TokenDisplay = _auth.AccessToken;
-            await Shell.Current.GoToAsync("//MainPage");
+            await Shell.Current.GoToAsync("//RequestsPage");
         }
         else
         {

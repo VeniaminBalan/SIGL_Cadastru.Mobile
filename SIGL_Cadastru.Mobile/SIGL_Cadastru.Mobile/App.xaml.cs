@@ -45,7 +45,7 @@ namespace SIGL_Cadastru.Mobile
             else
             {
                 // Refresh successful - navigate to main page
-                await Shell.Current.GoToAsync("//MainPage");
+                await Shell.Current.GoToAsync("//RequestsPage");
             }
         }
     }
