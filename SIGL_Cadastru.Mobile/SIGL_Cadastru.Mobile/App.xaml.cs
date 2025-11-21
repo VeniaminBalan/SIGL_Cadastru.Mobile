@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using SIGL_Cadastru.Mobile.Services;
+﻿using SIGL_Cadastru.Mobile.Services;
 
 namespace SIGL_Cadastru.Mobile
 {

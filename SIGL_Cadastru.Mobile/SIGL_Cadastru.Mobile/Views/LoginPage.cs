@@ -17,6 +17,17 @@ public class LoginPage : ContentPage
 
             Children =
             {
+                new Label()
+                    .Text("FCM Token")
+                    .FontSize(16)
+                    .Font(bold: true)
+                    .Center(),
+
+                new Label()
+                    .FontSize(12)
+                    .TextCenter()
+                    .Bind(Label.TextProperty, nameof(LoginViewModel.FcmToken)),
+
                 new Button()
                     .Text("Login")
                     .Bind(Button.CommandProperty, nameof(LoginViewModel.LoginCommand))

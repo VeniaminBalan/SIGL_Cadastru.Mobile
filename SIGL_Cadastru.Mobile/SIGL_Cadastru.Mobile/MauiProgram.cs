@@ -1,6 +1,16 @@
 ﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Markup;
 using Microsoft.Extensions.Logging;
+using Plugin.Firebase.Auth;
+using Microsoft.Maui.LifecycleEvents;
+
+using Plugin.Firebase.Bundled.Shared;
+
+#if IOS
+    using Plugin.Firebase.Bundled.Platforms.iOS;
+#else
+    using Plugin.Firebase.Bundled.Platforms.Android;
+#endif
 
 namespace SIGL_Cadastru.Mobile;
 
@@ -13,6 +23,7 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit()
             .UseMauiCommunityToolkitMarkup()
+            .RegisterFirebaseServices()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -33,5 +44,38 @@ public static class MauiProgram
         builder.Services.RegisterViews();
 
         return builder.Build();
+    }
+
+    private static MauiAppBuilder RegisterFirebaseServices(this MauiAppBuilder builder)
+    {
+        builder.ConfigureLifecycleEvents(events => {
+#if IOS
+            events.AddiOS(iOS => iOS.FinishedLaunching((app, launchOptions) => {
+                CrossFirebase.Initialize(CreateCrossFirebaseSettings());
+                return false;
+            }));
+#else
+            events.AddAndroid(android => android.OnCreate((activity, _) =>
+            {
+                CrossFirebase.Initialize(activity, CreateCrossFirebaseSettings());
+            }));
+#endif
+        });
+
+        builder.Services.AddSingleton(_ => CrossFirebaseAuth.Current);
+        return builder;
+    }
+
+    private static CrossFirebaseSettings CreateCrossFirebaseSettings()
+    {
+        return new CrossFirebaseSettings(
+            isAuthEnabled: false, 
+            isCloudMessagingEnabled: true, 
+            isCrashlyticsEnabled: false,
+            isAnalyticsEnabled: false,
+            isDynamicLinksEnabled: false,
+            isFirestoreEnabled: false,
+            isFunctionsEnabled: false,
+            isStorageEnabled: false);
     }
 }

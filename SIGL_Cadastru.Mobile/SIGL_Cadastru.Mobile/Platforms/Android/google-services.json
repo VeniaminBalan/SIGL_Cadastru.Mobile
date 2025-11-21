@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "339880809578",
+    "project_id": "siglcadastru",
+    "storage_bucket": "siglcadastru.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:339880809578:android:5b5e2e255f8f07125f2613",
+        "android_client_info": {
+          "package_name": "sigl.cadastru.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoOw3P-stKxZyZP7it3vIsKn6ZcCe8BQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -60,6 +60,7 @@ public class RequestsPage : ContentPage
                         ItemTemplate = CreateRequestTemplate(),
                         Margin = new Thickness(0,0,0,0),
                         RemainingItemsThreshold = 5,
+
                         SelectionMode = SelectionMode.None,
                         Footer = new ActivityIndicator()
                             .Center()
