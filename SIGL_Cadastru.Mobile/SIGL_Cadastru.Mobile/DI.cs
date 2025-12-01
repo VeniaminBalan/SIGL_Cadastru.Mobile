@@ -3,6 +3,7 @@ using SIGL_Cadastru.Mobile.Services;
 using SIGL_Cadastru.Mobile.Services.Accounts;
 using SIGL_Cadastru.Mobile.Services.Analytics;
 using SIGL_Cadastru.Mobile.Services.Clients;
+using SIGL_Cadastru.Mobile.Services.Device;
 using SIGL_Cadastru.Mobile.Services.Documents;
 using SIGL_Cadastru.Mobile.Services.Files;
 using SIGL_Cadastru.Mobile.Services.Migrations;
@@ -37,16 +38,27 @@ public static class DI
 
             services.AddSingleton<KeycloakAuthService>();
 
+            // Register device management services
+            services.AddSingleton<DeviceManager>();
+            services.AddSingleton<NotificationService>();
+
             // Register the authenticated HTTP message handler
             services.AddTransient<AuthenticatedHttpMessageHandler>();
+            
+            // Register device header handler
+            services.AddTransient<DeviceHeaderHandler>();
 
-            // Configure HttpClient for API services with authentication
+            // Configure HttpClient for API services with authentication and device tracking
             services.AddSingleton<HttpClient>(sp =>
             {
                 var authHandler = sp.GetRequiredService<AuthenticatedHttpMessageHandler>();
+                var deviceHandler = sp.GetRequiredService<DeviceHeaderHandler>();
+                
+                // Chain handlers: DeviceHeaderHandler -> AuthenticatedHttpMessageHandler -> HttpClientHandler
+                deviceHandler.InnerHandler = authHandler;
                 authHandler.InnerHandler = new HttpClientHandler();
 
-                var httpClient = new HttpClient(authHandler)
+                var httpClient = new HttpClient(deviceHandler)
                 {
                     // TODO: Replace with actual API base URL
                     BaseAddress = new Uri("http://192.168.1.134:5000")
@@ -59,6 +71,7 @@ public static class DI
             services.AddSingleton<IAccountService, AccountService>();
             services.AddSingleton<IAnalyticsService, AnalyticsService>();
             services.AddSingleton<IClientService, ClientService>();
+            services.AddSingleton<IDeviceService, DeviceService>();
             services.AddSingleton<IDocumentService, DocumentService>();
             services.AddSingleton<IFileService, FileService>();
             services.AddSingleton<IMigrationService, MigrationService>();

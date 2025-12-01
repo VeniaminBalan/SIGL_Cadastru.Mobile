@@ -5,11 +5,13 @@ namespace SIGL_Cadastru.Mobile
     public partial class App : Application
     {
         private readonly KeycloakAuthService _authService;
+        private readonly NotificationService _notificationService;
 
-        public App(KeycloakAuthService authService)
+        public App(KeycloakAuthService authService, NotificationService notificationService)
         {
             InitializeComponent();
             _authService = authService;
+            _notificationService = notificationService;
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
@@ -20,6 +22,10 @@ namespace SIGL_Cadastru.Mobile
         protected override async void OnStart()
         {
             base.OnStart();
+            
+            // Initialize notification service
+            await _notificationService.InitializeAsync();
+            
             await TryRefreshTokenOnStartupAsync();
         }
 
