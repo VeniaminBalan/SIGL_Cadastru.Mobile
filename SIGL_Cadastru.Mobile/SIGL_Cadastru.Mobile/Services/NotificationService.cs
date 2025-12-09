@@ -11,11 +11,13 @@ public class NotificationService
 {
     private readonly ILogger<NotificationService> _logger;
     private readonly DeviceManager _deviceManager;
+    private readonly KeycloakAuthService _authService;
 
-    public NotificationService(ILogger<NotificationService> logger, DeviceManager deviceManager)
+    public NotificationService(ILogger<NotificationService> logger, DeviceManager deviceManager, KeycloakAuthService authService)
     {
         _logger = logger;
         _deviceManager = deviceManager;
+        _authService = authService;
     }
 
     /// <summary>
@@ -51,31 +53,18 @@ public class NotificationService
     {
         try
         {
+            if (!_authService.IsAuthenticated)
+            {
+                _logger.LogInformation("Notification received but user is not authenticated, ignoring");
+                return;
+            }
+
             var title = e.Notification.Title;
             var body = e.Notification.Body;
             var data = e.Notification.Data;
 
             _logger.LogInformation("Notification received - Title: {Title}, Body: {Body}", title, body);
 
-            // Display notification to user on main thread
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                try
-                {
-                    var currentPage = Application.Current?.Windows[0]?.Page;
-                    if (currentPage != null)
-                    {
-                        await currentPage.DisplayAlertAsync(
-                            title ?? "Notification",
-                            body ?? "You have a new notification",
-                            "OK");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error displaying notification alert");
-                }
-            });
         }
         catch (Exception ex)
         {
@@ -90,6 +79,12 @@ public class NotificationService
     {
         try
         {
+            if (!_authService.IsAuthenticated)
+            {
+                _logger.LogInformation("Notification tapped but user is not authenticated, ignoring");
+                return;
+            }
+
             var data = e.Notification.Data;
             _logger.LogInformation("Notification tapped with data: {DataCount} items", data?.Count ?? 0);
 
@@ -98,42 +93,39 @@ public class NotificationService
             {
                 try
                 {
-                    if (data != null && data.TryGetValue("type", out var notificationType))
+                    if (data != null && data.TryGetValue("resourcePath", out var resourcePath))
                     {
-                        _logger.LogInformation("Handling notification type: {Type}", notificationType);
+                        _logger.LogInformation("Handling notification type: {Type}", resourcePath);
 
                         // Navigate based on notification type
-                        switch (notificationType?.ToLower())
+                        switch (resourcePath)
                         {
-                            case "request":
-                                if (data.TryGetValue("requestId", out var requestId))
+                            case "Requests":
+                                if (data.TryGetValue("resourceId", out var requestId))
                                 {
-                                    await Shell.Current.GoToAsync($"//RequestDetailPage?id={requestId}");
+                                    await Shell.Current.GoToAsync($"RequestDetailPage?RequestId={requestId}");
                                 }
                                 else
                                 {
-                                    await Shell.Current.GoToAsync("//RequestsPage");
+                                    await Shell.Current.GoToAsync("RequestsPage");
                                 }
                                 break;
 
-                            case "client":
-                                await Shell.Current.GoToAsync("//ClientsPage");
+                            case "Clients":
+                                await Shell.Current.GoToAsync("ClientsPage");
                                 break;
 
-                            case "profile":
-                                await Shell.Current.GoToAsync("//ProfilePage");
-                                break;
 
                             default:
                                 // Default to requests page
-                                await Shell.Current.GoToAsync("//RequestsPage");
+                                await Shell.Current.GoToAsync("RequestsPage");
                                 break;
                         }
                     }
                     else
                     {
                         // No specific navigation data, go to main page
-                        await Shell.Current.GoToAsync("//RequestsPage");
+                        await Shell.Current.GoToAsync("RequestsPage");
                     }
                 }
                 catch (Exception ex)
