@@ -12,8 +12,8 @@ SIGL Cadastru Mobile este o aplicație mobilă destinată gestionării și monit
 
 ### Cerințe principale:
 - **Autentificare securizată** prin Keycloak/OIDC cu suport pentru refresh token și logout
-- **Gestionarea cerințelor cadastrale**: vizualizare, filtrare, căutare și sortare a cerințelor
-- **Detalii complete ale cerințelor**: informații despre clienți, lucrări cadastrale, documente, stări și timeline
+- **Gestionarea cererilor cadastrale**: vizualizare, filtrare, căutare și sortare a cererilor
+- **Detalii complete ale cererilor**: informații despre clienți, lucrări cadastrale, documente, stări și timeline
 - **Gestionarea clienților**: acces la baza de date de clienți și informațiile acestora
 - **Profil utilizator**: vizualizare și gestionare informații personale
 - **Notificări push** prin Firebase Cloud Messaging pentru actualizări în timp real
@@ -22,10 +22,10 @@ SIGL Cadastru Mobile este o aplicație mobilă destinată gestionării și monit
 - **Interfață intuitivă** construită cu C# Markup (zero XAML) pentru performanță maximă
 
 ### Problema rezolvată:
-Aplicația elimină necesitatea accesului constant la un computer desktop pentru vizualizarea și gestionarea cerințelor cadastrale. Profesioniștii din domeniul cadastral pot:
+Aplicația elimină necesitatea accesului constant la un computer desktop pentru vizualizarea și gestionarea cererilor cadastrale. Profesioniștii din domeniul cadastral pot:
 - Accesa rapid informațiile despre cereri direct din teren
 - Primi notificări instant despre schimbări de stare
-- Vizualiza documentele asociate cerințelor
+- Vizualiza documentele asociate cererilor
 - Gestiona relațiile cu clienții mobil
 - Menține sincronizarea automată între dispozitiv și server
 
@@ -34,8 +34,8 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 ## 2. Identificarea grupului țintă de utilizatori
 
 ### Utilizatori primari:
-1. **Ingineri cadastrali** - accesează cerințele în teren, verifică documentația, actualizează stări
-2. **Responsabili de proiecte** - monitorizează progresul cerințelor, gestionează termene
+1. **Ingineri cadastrali** - accesează cererilor în teren, verifică documentația, actualizează stări
+2. **Responsabili de proiecte** - monitorizează progresul cererilor, gestionează termene
 3. **Personal de recepție** - înregistrează cereri noi, verifică documentația clienților
 4. **Manageri de birouri cadastrale** - supraveghere generală, raportare, analitică
 
@@ -49,7 +49,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 - Inginerul verifică pe teren datele cadastrale și actualizează starea cererii
 - Responsabilul primește notificare despre o cerere cu termen aproape expirat
 - Personalul de recepție verifică istoricul unui client înainte de a accepta o cerere nouă
-- Managerul monitorizează progresul tuturor cerințelor active din organizație
+- Managerul monitorizează progresul tuturor cererilor active din organizație
 
 ---
 
@@ -59,7 +59,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 - **Descriere:** Aplicație pentru gestionarea lucrărilor de topografie și cadastru
 - **Puncte forte:** Integrare cu echipamente GPS, capturare coordonate în teren
 - **Puncte slabe:** Interfață complexă, licențiere foarte scumpă ($500+/utilizator/an)
-- **Diferențiator SIGL:** Interfață mai simplă, focus pe workflow-ul cerințelor, nu pe măsurători
+- **Diferențiator SIGL:** Interfață mai simplă, focus pe workflow-ul cererilor, nu pe măsurători
 
 ### 3.2 **Cadastral Manager Pro** (Europa)
 - **Descriere:** Sistem ERP cadastral cu modul mobile limitat
@@ -71,7 +71,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 ## 4. Descrierea use-case-ului principal
 
-### Use-case: **Monitorizarea și actualizarea unei cerințe cadastrale**
+### Use-case: **Monitorizarea și actualizarea unei cererilor cadastrale**
 
 #### Actori:
 - **Actor principal:** Inginer cadastral
@@ -80,7 +80,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 #### Precondiții:
 - Utilizatorul este autentificat în aplicație
 - Dispozitivul are conexiune internet (pentru sincronizare)
-- Utilizatorul are permisiuni pentru vizualizarea și editarea cerințelor
+- Utilizatorul are permisiuni pentru vizualizarea și editarea cererilor
 
 #### Flux principal:
 
@@ -90,20 +90,20 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
    - Sistemul deschide browser-ul Keycloak pentru autentificare
    - După autentificare, utilizatorul e redirecționat la pagina principală
 
-2. **Vizualizare listă cerințe**
-   - Aplicația afișează lista Top 10 cerințe active
+2. **Vizualizare listă cererilor**
+   - Aplicația afișează lista Top 10 cererilor active
    - Utilizatorul vede: număr cerere, număr cadastral, client, responsabil, termenele, starea curentă
    - Utilizatorul poate filtra după stare (Emisă, Respinsă, La recepție, În progres)
    - Utilizatorul poate căuta după text (număr, client, cadastral)
    - Utilizatorul poate sorta după diverse criterii (dată, stare, client)
 
-3. **Scroll infinit pentru mai multe cerințe**
-   - La scroll jos, aplicația încarcă automat următoarele 10 cerințe
+3. **Scroll infinit pentru mai multe cereri**
+   - La scroll jos, aplicația încarcă automat următoarele 10 cereri
    - Indicator de loading afișează progresul încărcării
 
-4. **Selectare cerință pentru detalii**
-   - Utilizatorul apasă pe o cerință din listă
-   - Aplicația navighează la pagina de detalii cerință
+4. **Selectare cererii pentru detalii**
+   - Utilizatorul apasă pe o cerere din listă
+   - Aplicația navighează la pagina de detalii cerere
 
 5. **Vizualizare detalii complete**
    - Afișează informații client (nume, email, telefon, adresă)
@@ -116,9 +116,9 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 6. **Primire notificare în timp real** (flux alternativ asincron)
    - În timp ce utilizatorul lucrează, primește o notificare FCM
-   - Notificarea indică o schimbare de stare pentru o cerință
+   - Notificarea indică o schimbare de stare pentru o cerere
    - Utilizatorul apasă pe notificare
-   - Aplicația deschide direct cerința respectivă cu datele actualizate
+   - Aplicația deschide direct cerere respectivă cu datele actualizate
 
 7. **Logout și securitate**
    - Utilizatorul accesează pagina de profil
@@ -146,7 +146,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 **A3. Notificare primită când aplicația e închisă**
 - Notificarea apare în notification tray-ul sistemului
-- La deschiderea aplicației prin notificare, se navigă direct la cerința respectivă
+- La deschiderea aplicației prin notificare, se navigă direct la cererea respectivă
 
 ---
 
@@ -156,12 +156,12 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 #### 1. **Licențiere per utilizator/lună** (Model principal)
 - **Tier Basic:** 29 EUR/utilizator/lună
-  - Până la 100 cerințe active
+  - Până la 100 cereri active
   - 2GB stocare documente
   - Suport email
   
 - **Tier Professional:** 49 EUR/utilizator/lună
-  - Cerințe nelimitate
+  - Cereri nelimitate
   - 10GB stocare
   - Notificări push avansate
   - Suport prioritar
@@ -255,62 +255,6 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
      - `PagedResponse<T>` generic pentru paginare
      - `QueryParameters` pentru filtrare/sortare consistentă
      - Service layer cu interfețe pentru testability
-
-### 6.5 Proiecte și cod inspirație
-10. **eShopOnContainers MAUI Client**
-    - Sursa: https://github.com/dotnet-architecture/eShopOnContainers
-    - Inspirație: Arhitectură HttpClient cu DI, error handling
-    - Realizat în plus: Dual message handlers (auth + device tracking), logging avansat
-
-11. **MAUI Weather App Sample**
-    - Sursa: https://github.com/davidortinau/WeatherTwentyOne
-    - Inspirație: C# Markup patterns, animații
-    - Realizat în plus: Business logic complexă (workflow cerințe cadastrale), multiple domenii API
-
-### 6.6 Ce s-a realizat în plus față de sursele de bază
-
-1. **Arhitectură enterprise-grade complet customizată:**
-   - Pattern DI cu extension methods în `DI.cs` (nu există în samples standard)
-   - Chaining de HTTP message handlers (auth + device tracking)
-   - Separare strictă domenii (9 servicii API separate cu interfețe)
-
-2. **Zero XAML UI (cu excepția Shell și App.xaml):**
-   - Toate Views în C# Markup pur
-   - Pattern repeatable cu ViewModel injection în constructor
-   - Performance superior față de XAML parsing
-
-3. **Device tracking complet:**
-   - Generare unică device ID persistentă
-   - Auto-register/deregister la login/logout
-   - Injectare automată device ID în toate request-urile HTTP
-   - Sincronizare bidirectională cu backend
-
-4. **Sistem notificări integrat:**
-   - Firebase FCM cu Plugin.Firebase
-   - `NotificationService` pentru routing notificări la ecranele corecte
-   - Token refresh automat, error handling
-
-5. **Multi-domain business logic:**
-   - 9 domenii separate: Requests, Clients, Documents, Files, Users, Device, Accounts, Analytics, Migrations
-   - Modele complexe cu relații (cerințe → clienți → documente → fișiere)
-   - Query parameters pentru filtrare/sortare/paginare avansată
-
-6. **Security features avansate:**
-   - SecureStorage pentru tokens și device ID
-   - Auto-refresh tokens cu fallback la login
-   - Logout complet cu device deregistration
-   - Custom URL scheme pentru OAuth redirects
-
-7. **Developer experience optimizat:**
-   - Logging comprehensive cu ILogger
-   - Error handling centralizat
-   - Cod organizat, comentat, scalabil
-   - Readme.md complet cu reguli stricte de dezvoltare
-
-### Proiecte anterioare care au influențat arhitectura:
-- **Niciun proiect anterior direct replicat** - aceasta este o implementație custom de la zero
-- Experiența generală din proiecte enterprise .NET și MAUI a ghidat deciziile arhitecturale
-- Pattern-urile sunt adaptate specific pentru domeniul cadastral și cerințele SIGL
 
 ---
 
