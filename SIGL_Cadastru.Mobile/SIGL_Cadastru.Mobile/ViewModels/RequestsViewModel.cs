@@ -103,7 +103,7 @@ public partial class RequestsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void ApplyFilters()
+    public async Task ApplyFilters()
     {
         var filters = new List<string>();
         if (FilterIssued) filters.Add("Issued");
@@ -112,13 +112,28 @@ public partial class RequestsViewModel : ObservableObject
         if (FilterInProgress) filters.Add("InProgress");
         
         FilterBy = filters.Any() ? string.Join(",", filters) : null;
+        await LoadRequestsAsync(); // Reload with new filters
     }
 
     [RelayCommand]
-    public void ClearPaymentFilter()
+    public async Task ClearPaymentFilter()
     {
         FilterFullyPaid = false;
         FilterUnpaid = false;
+        await LoadRequestsAsync(); // Reload after clearing payment filter
+    }
+    
+    partial void OnSearchTextChanged(string? value)
+    {
+        // Debounce search to avoid too many API calls
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(300); // 300ms debounce
+            if (SearchText == value) // Check if still the same value
+            {
+                await LoadRequestsAsync();
+            }
+        });
     }
 
     private async Task LoadRequestsAsync(bool loadMore = false)
@@ -153,9 +168,13 @@ public partial class RequestsViewModel : ObservableObject
             var pagedResponse = await _requestService.GetRequestsPagedAsync(parameters);
             _totalPages = pagedResponse.TotalPages;
             
+            // Add items only if they don't already exist (prevent duplicates)
             foreach (var request in pagedResponse.Data)
             {
-                Requests.Add(request);
+                if (!Requests.Any(r => r.Id == request.Id))
+                {
+                    Requests.Add(request);
+                }
             }
         }
         catch (Exception ex)
