@@ -12,4 +12,5 @@ public class RequestQueryParameters : PagedQueryParameters
     public string? FilterBy { get; set; }
     public string? OrderBy { get; set; }
     public string? Direction { get; set; }
+    public bool? IsFullyPaid { get; set; }
 }

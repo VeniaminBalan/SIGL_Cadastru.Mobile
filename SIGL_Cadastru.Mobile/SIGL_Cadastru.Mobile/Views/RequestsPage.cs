@@ -1,29 +1,28 @@
 using CommunityToolkit.Maui.Markup;
-using Microsoft.Maui.Controls.Shapes;
+using SIGL_Cadastru.Mobile.Components;
+using SIGL_Cadastru.Mobile.DesignSystem;
+using SIGL_Cadastru.Mobile.DesignSystem.BaseViews;
 using SIGL_Cadastru.Mobile.ViewModels;
 
 namespace SIGL_Cadastru.Mobile.Views;
 
-public class RequestsPage : ContentPage
+public class RequestsPage : BaseContentPage<RequestsViewModel>
 {
-    private readonly RequestsViewModel _vm;
-
-    public RequestsPage(RequestsViewModel vm)
+    public RequestsPage(RequestsViewModel vm) : base(vm)
     {
-        _vm = vm;
-        BindingContext = vm;
-
         Title = "Requests";
+    }
 
-        // Fast, lightweight initial UI
-        Content = BuildInitialUi();
+    protected override View BuildPageContent()
+    {
+        return BuildInitialUi();
     }
 
     private View BuildInitialUi()
     {
         return new Grid
         {
-            Padding = 20,
+            Padding = DesignTokens.Layout.PagePadding,
             RowDefinitions =
             {
                 new RowDefinition { Height = GridLength.Auto }, // Filter Controls
@@ -33,81 +32,90 @@ public class RequestsPage : ContentPage
 
             Children =
             {
-                // Filter Controls
                 BuildFilterControls().Row(0),
-                // Error message
-                new Label()
-                    .TextColor(Colors.Red)
-                    .FontSize(14)
-                    .Margins(top: 8)
-                    .Bind(Label.IsVisibleProperty, nameof(RequestsViewModel.ErrorMessage), 
-                          convert: (string? msg) => !string.IsNullOrWhiteSpace(msg))
-                    .Bind(Label.TextProperty, nameof(RequestsViewModel.ErrorMessage))
-                    .Row(1),
-
-                // Loading indicator
-                new ActivityIndicator()
-                    .Center()
-                    .Bind(ActivityIndicator.IsRunningProperty, nameof(RequestsViewModel.IsLoading))
-                    .Bind(ActivityIndicator.IsVisibleProperty, nameof(RequestsViewModel.IsLoading))
-                    .Row(2),
-
-                // Main list placeholder – initially hidden
-                new RefreshView
-                {
-                    Content = new CollectionView
-                    {
-                        ItemTemplate = CreateRequestTemplate(),
-                        Margin = new Thickness(0,0,0,0),
-                        RemainingItemsThreshold = 5,
-
-                        SelectionMode = SelectionMode.None,
-                        Footer = new ActivityIndicator()
-                            .Center()
-                            .Margins(10)
-                            .Bind(ActivityIndicator.IsRunningProperty, nameof(RequestsViewModel.IsLoadingMore))
-                            .Bind(ActivityIndicator.IsVisibleProperty, nameof(RequestsViewModel.IsLoadingMore))
-                    }
-                    .Bind(CollectionView.ItemsSourceProperty, nameof(RequestsViewModel.Requests))
-                    .Bind(CollectionView.RemainingItemsThresholdReachedCommandProperty, nameof(RequestsViewModel.LoadMoreRequestsCommand))
-                }
-                .Bind(RefreshView.CommandProperty, nameof(RequestsViewModel.LoadRequestsCommand))
-                .Bind(RefreshView.IsRefreshingProperty, nameof(RequestsViewModel.IsLoading))
-                .Bind(IsVisibleProperty, nameof(RequestsViewModel.IsLoading), convert: (bool loading) => !loading)
-                .Row(2)
+                BuildErrorLabel().Row(1),
+                BuildContentArea().Row(2)
             }
         };
+    }
+
+    private View BuildContentArea()
+    {
+        return new Grid
+        {
+            Children =
+            {
+                BuildLoadingIndicator(),
+                BuildRequestsList()
+            }
+        };
+    }
+
+    private View BuildRequestsList()
+    {
+        return new RefreshView
+        {
+            Content = new CollectionView
+            {
+                ItemTemplate = new DataTemplate(() => 
+                    new RequestCardComponent()
+                        .Bind(RequestCardComponent.RequestProperty, ".")
+                        .Bind(RequestCardComponent.TapCommandProperty, 
+                            nameof(RequestsViewModel.NavigateToRequestCommand), 
+                            source: ViewModel)
+                ),
+                Margin = new Thickness(0),
+                RemainingItemsThreshold = 5,
+                SelectionMode = SelectionMode.None,
+                Footer = new ActivityIndicator()
+                    .Center()
+                    .Margins(all: DesignTokens.Spacing.Sm)
+                    .Bind(ActivityIndicator.IsRunningProperty, nameof(RequestsViewModel.IsLoadingMore))
+                    .Bind(ActivityIndicator.IsVisibleProperty, nameof(RequestsViewModel.IsLoadingMore))
+            }
+            .Bind(CollectionView.ItemsSourceProperty, nameof(RequestsViewModel.Requests))
+            .Bind(CollectionView.RemainingItemsThresholdReachedCommandProperty, 
+                nameof(RequestsViewModel.LoadMoreRequestsCommand))
+        }
+        .Bind(RefreshView.CommandProperty, nameof(RequestsViewModel.LoadRequestsCommand))
+        .Bind(RefreshView.IsRefreshingProperty, nameof(RequestsViewModel.IsLoading))
+        .Bind(IsVisibleProperty, nameof(RequestsViewModel.IsLoading), 
+            convert: (bool loading) => !loading);
     }
 
     private View BuildFilterControls()
     {
         return new VerticalStackLayout
         {
-            Spacing = 10,
-            Margin = new Thickness(0, 0, 0, 15),
+            Spacing = DesignTokens.Spacing.Sm,
+            Margin = new Thickness(0, 0, 0, DesignTokens.Spacing.Lg),
             Children =
             {
                 // Search Entry
                 new Entry
                 {
-                    ClearButtonVisibility = ClearButtonVisibility.WhileEditing
+                    ClearButtonVisibility = ClearButtonVisibility.WhileEditing,
+                    Placeholder = "Search requests..."
                 }
+                .StyleFormEntry()
                 .Bind(Entry.TextProperty, nameof(RequestsViewModel.SearchText))
                 .Bind(Entry.ReturnCommandProperty, nameof(RequestsViewModel.LoadRequestsCommand)),
 
-                // Filter Button
-                new Button
+                // Filter Buttons Row
+                new HorizontalStackLayout
                 {
-                    Text = "Filter by State"
-                }
-                .Bind(Button.TextProperty, nameof(RequestsViewModel.FilterBy), 
-                      convert: (string? filter) => string.IsNullOrWhiteSpace(filter) ? "Filter by State" : $"Filters: {filter}")
-                .Invoke(btn => btn.Clicked += async (s, e) => await ShowFilterModal()),
+                    Spacing = DesignTokens.Spacing.Sm,
+                    Children =
+                    {
+                        BuildFilterButton(),
+                        BuildPaymentFilterButton()
+                    }
+                },
 
                 // Sort Controls Row
                 new Grid
                 {
-                    ColumnSpacing = 8,
+                    ColumnSpacing = DesignTokens.Spacing.Sm,
                     ColumnDefinitions =
                     {
                         new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) },
@@ -134,80 +142,47 @@ public class RequestsPage : ContentPage
                 },
 
                 // Search Button
-                new Button
-                {
-                    Text = "Search",
-                    HorizontalOptions = LayoutOptions.Fill
-                }
-                .Bind(Button.CommandProperty, nameof(RequestsViewModel.LoadRequestsCommand))
+                BuildSearchButton()
             }
         };
     }
 
-    private DataTemplate CreateRequestTemplate()
+    private Button BuildFilterButton()
     {
-        return new DataTemplate(() =>
-        {
-            var border = new Border
-            {
-                Padding = 12,
-                Margin = new Thickness(0, 6),
-                StrokeShape = new RoundRectangle { CornerRadius = 10 },
-                Stroke = Colors.LightGray,
-                StrokeThickness = 1,
+        var button = new Button();
+        button.StyleOutlineButton();
+        button
+            .Bind(Button.TextProperty, nameof(RequestsViewModel.FilterBy), 
+                  convert: (string? filter) => string.IsNullOrWhiteSpace(filter) ? 
+                      "State Filter" : $"State: {filter}");
+        button.Clicked += async (s, e) => await ShowFilterModal();
+        return button;
+    }
 
-                Content = new VerticalStackLayout
-                {
-                    Spacing = 4,
-                    Children =
-                    {
-                        new Label()
-                            .FontSize(18)
-                            .Bold()
-                            .Bind(Label.TextProperty, "Number", convert: (string? num) => $"Request: {num ?? "N/A"}"),
+    private Button BuildPaymentFilterButton()
+    {
+        var button = new Button();
+        button.StyleOutlineButton();
+        button
+            .Bind(Button.TextProperty, nameof(RequestsViewModel.FilterFullyPaid), 
+                  convert: (bool fullyPaid, bool unpaid) =>
+                  {
+                      if (fullyPaid && !unpaid) return "Pay: Paid";
+                      if (unpaid && !fullyPaid) return "Pay: Unpaid";
+                      return "Payment";
+                  });
+        button.Clicked += async (s, e) => await ShowPaymentFilterModal();
+        return button;
+    }
 
-                        new Label()
-                            .FontSize(14)
-                            .TextColor(Colors.Gray)
-                            .Bind(Label.TextProperty, "CadastralNumber", convert: (string? num) => $"Cadastral #: {num ?? "N/A"}"),
-
-                        new Label()
-                            .FontSize(14)
-                            .Bind(Label.TextProperty, "Client", convert: (string? c) => $"Client: {c ?? "N/A"}"),
-
-                        new HorizontalStackLayout
-                        {
-                            Spacing = 10,
-                            Children =
-                            {
-                                new Label()
-                                    .FontSize(12)
-                                    .Bind(Label.TextProperty, "CurrentState", convert: (Models.Shared.StateType s) => s.ToString()),
-
-                                new Label()
-                                    .FontSize(12)
-                                    .TextColor(Colors.DarkGray)
-                                    .Bind(Label.TextProperty, "AvailableFrom", convert: (DateTime d) => d.ToString("dd/MM/yyyy"))
-                            }
-                        }
-                    }
-                }
-            };
-
-            var tapGesture = new TapGestureRecognizer();
-            tapGesture.Tapped += async (s, e) =>
-            {
-                if (border.BindingContext is Models.Requests.CadastralRequestDto request)
-                {
-                    await border.ScaleToAsync(0.95, 80, Easing.CubicOut);
-                    await border.ScaleToAsync(1.0, 80, Easing.CubicIn);
-                    _vm.NavigateToRequestCommand.Execute(request);
-                }
-            };
-            border.GestureRecognizers.Add(tapGesture);
-
-            return border;
-        });
+    private Button BuildSearchButton()
+    {
+        var button = new Button { HorizontalOptions = LayoutOptions.Fill };
+        button
+            .Text("Search")
+            .StylePrimaryButton()
+            .Bind(Button.CommandProperty, nameof(RequestsViewModel.LoadRequestsCommand));
+        return button;
     }
 
     private async Task ShowFilterModal()
@@ -217,73 +192,146 @@ public class RequestsPage : ContentPage
             Title = "Filter by State",
             Content = new VerticalStackLayout
             {
-                Padding = 20,
-                Spacing = 12,
+                Padding = DesignTokens.Layout.PagePadding,
+                Spacing = DesignTokens.Spacing.Md,
                 Children =
                 {
-                    CreateFilterCheckbox("Issued", nameof(RequestsViewModel.FilterIssued)),
-                    CreateFilterCheckbox("Rejected", nameof(RequestsViewModel.FilterRejected)),
-                    CreateFilterCheckbox("At Reception", nameof(RequestsViewModel.FilterAtReception)),
-                    CreateFilterCheckbox("In Progress", nameof(RequestsViewModel.FilterInProgress)),
-
-                    new Button
+                    new FilterCheckboxComponent
                     {
-                        Text = "Apply Filters",
-                        Margin = new Thickness(0, 20, 0, 0)
+                        LabelText = "Issued"
                     }
-                    .Invoke(btn => btn.Clicked += async (s, e) =>
+                    .Bind(FilterCheckboxComponent.IsCheckedProperty, nameof(RequestsViewModel.FilterIssued)),
+                    
+                    new FilterCheckboxComponent
                     {
-                        _vm.ApplyFiltersCommand.Execute(null);
-                        await _vm.LoadRequestsCommand.ExecuteAsync(null);
-                        await Navigation.PopModalAsync();
-                    }),
-
-                    new Button
-                    {
-                        Text = "Clear All",
-                        BackgroundColor = Colors.Transparent,
-                        TextColor = Colors.Gray
+                        LabelText = "Rejected"
                     }
-                    .Invoke(btn => btn.Clicked += async (s, e) =>
+                    .Bind(FilterCheckboxComponent.IsCheckedProperty, nameof(RequestsViewModel.FilterRejected)),
+                    
+                    new FilterCheckboxComponent
                     {
-                        _vm.FilterIssued = false;
-                        _vm.FilterRejected = false;
-                        _vm.FilterAtReception = false;
-                        _vm.FilterInProgress = false;
-                        _vm.ApplyFiltersCommand.Execute(null);
-                        await _vm.LoadRequestsCommand.ExecuteAsync(null);
-                        await Navigation.PopModalAsync();
-                    })
+                        LabelText = "At Reception"
+                    }
+                    .Bind(FilterCheckboxComponent.IsCheckedProperty, nameof(RequestsViewModel.FilterAtReception)),
+                    
+                    new FilterCheckboxComponent
+                    {
+                        LabelText = "In Progress"
+                    }
+                    .Bind(FilterCheckboxComponent.IsCheckedProperty, nameof(RequestsViewModel.FilterInProgress)),
+
+                    BuildApplyFiltersButton(),
+                    BuildClearAllButton()
                 }
             }
         };
 
-        filterPage.BindingContext = _vm;
+        filterPage.BindingContext = ViewModel;
         await Navigation.PushModalAsync(new NavigationPage(filterPage));
     }
 
-    private HorizontalStackLayout CreateFilterCheckbox(string label, string bindingPath)
+    private Button BuildApplyFiltersButton()
     {
-        return new HorizontalStackLayout
+        var button = new Button { Margin = new Thickness(0, DesignTokens.Spacing.Xl, 0, 0) };
+        button
+            .Text("Apply Filters")
+            .StylePrimaryButton();
+        button.Clicked += async (s, e) =>
         {
-            Spacing = 10,
-            Children =
-            {
-                new CheckBox()
-                    .Bind(CheckBox.IsCheckedProperty, bindingPath),
-                new Label { Text = label, VerticalOptions = LayoutOptions.Center }
-            }
+            ViewModel.ApplyFiltersCommand.Execute(null);
+            await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
+            await Navigation.PopModalAsync();
         };
+        return button;
     }
 
-    protected override void OnAppearing()
+    private Button BuildClearAllButton()
     {
-        base.OnAppearing();
+        var button = new Button();
+        button
+            .Text("Clear All")
+            .StyleTextButton();
+        button.Clicked += async (s, e) =>
+        {
+            ViewModel.FilterIssued = false;
+            ViewModel.FilterRejected = false;
+            ViewModel.FilterAtReception = false;
+            ViewModel.FilterInProgress = false;
+            ViewModel.ApplyFiltersCommand.Execute(null);
+            await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
+            await Navigation.PopModalAsync();
+        };
+        return button;
+    }
 
+    private async Task ShowPaymentFilterModal()
+    {
+        var paymentFilterPage = new ContentPage
+        {
+            Title = "Filter by Payment Status",
+            Content = new VerticalStackLayout
+            {
+                Padding = DesignTokens.Layout.PagePadding,
+                Spacing = DesignTokens.Spacing.Md,
+                Children =
+                {
+                    new FilterCheckboxComponent
+                    {
+                        LabelText = "Fully Paid"
+                    }
+                    .Bind(FilterCheckboxComponent.IsCheckedProperty, nameof(RequestsViewModel.FilterFullyPaid)),
+                    
+                    new FilterCheckboxComponent
+                    {
+                        LabelText = "Unpaid/Partially Paid"
+                    }
+                    .Bind(FilterCheckboxComponent.IsCheckedProperty, nameof(RequestsViewModel.FilterUnpaid)),
+
+                    BuildApplyPaymentFilterButton(),
+                    BuildClearPaymentFilterButton()
+                }
+            }
+        };
+
+        paymentFilterPage.BindingContext = ViewModel;
+        await Navigation.PushModalAsync(new NavigationPage(paymentFilterPage));
+    }
+
+    private Button BuildApplyPaymentFilterButton()
+    {
+        var button = new Button { Margin = new Thickness(0, DesignTokens.Spacing.Xl, 0, 0) };
+        button
+            .Text("Apply Filter")
+            .StylePrimaryButton();
+        button.Clicked += async (s, e) =>
+        {
+            await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
+            await Navigation.PopModalAsync();
+        };
+        return button;
+    }
+
+    private Button BuildClearPaymentFilterButton()
+    {
+        var button = new Button();
+        button
+            .Text("Clear Filter")
+            .StyleTextButton();
+        button.Clicked += async (s, e) =>
+        {
+            ViewModel.ClearPaymentFilterCommand.Execute(null);
+            await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
+            await Navigation.PopModalAsync();
+        };
+        return button;
+    }
+
+    protected override void OnPageAppearing()
+    {
         // Delays initialization until UI is rendered → no freeze
         Dispatcher.Dispatch(async () =>
         {
-            await _vm.InitializeCommand.ExecuteAsync(null);
+            await ViewModel.InitializeCommand.ExecuteAsync(null);
         });
     }
 }

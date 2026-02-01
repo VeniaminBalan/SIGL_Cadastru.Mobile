@@ -19,4 +19,6 @@ public interface IRequestService
     Task<Stream> GetRequestPdfAsync(string id);
     Task<Stream> PreviewRequestPdfAsync(CreateCadastralRequestCommand command);
     Task<TreeDto> GetTreeAsync();
+    Task<PaymentDto> AddPaymentAsync(string requestId, AddPaymentCommand command);
+    Task DeletePaymentAsync(string requestId, string paymentId);
 }

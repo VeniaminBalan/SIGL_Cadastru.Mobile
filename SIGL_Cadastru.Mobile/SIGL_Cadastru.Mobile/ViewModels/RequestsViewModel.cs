@@ -42,6 +42,12 @@ public partial class RequestsViewModel : ObservableObject
     private bool _filterInProgress;
 
     [ObservableProperty]
+    private bool _filterFullyPaid;
+
+    [ObservableProperty]
+    private bool _filterUnpaid;
+
+    [ObservableProperty]
     private string _orderBy = "AvailableFrom";
 
     [ObservableProperty]
@@ -56,7 +62,7 @@ public partial class RequestsViewModel : ObservableObject
 
     public RequestsViewModel(IRequestService requestService)
     {
-        _requestService = requestService;
+        _requestService = requestService; 
     }
 
     [RelayCommand]
@@ -108,6 +114,13 @@ public partial class RequestsViewModel : ObservableObject
         FilterBy = filters.Any() ? string.Join(",", filters) : null;
     }
 
+    [RelayCommand]
+    public void ClearPaymentFilter()
+    {
+        FilterFullyPaid = false;
+        FilterUnpaid = false;
+    }
+
     private async Task LoadRequestsAsync(bool loadMore = false)
     {
         try
@@ -133,7 +146,8 @@ public partial class RequestsViewModel : ObservableObject
                 PageNumber = _currentPage,
                 PageSize = PageSize,
                 OrderBy = OrderBy,
-                Direction = Direction
+                Direction = Direction,
+                IsFullyPaid = GetPaymentFilterValue()
             };
 
             var pagedResponse = await _requestService.GetRequestsPagedAsync(parameters);
@@ -155,5 +169,11 @@ public partial class RequestsViewModel : ObservableObject
             IsLoading = false;
             IsLoadingMore = false;
         }
+    }
+    private bool? GetPaymentFilterValue()
+    {
+        if (FilterFullyPaid && !FilterUnpaid) return true;
+        if (FilterUnpaid && !FilterFullyPaid) return false;
+        return null; // Both selected or neither selected = show all
     }
 }

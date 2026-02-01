@@ -61,7 +61,7 @@ public static class DI
                 var httpClient = new HttpClient(deviceHandler)
                 {
                     // TODO: Replace with actual API base URL
-                    BaseAddress = new Uri("http://192.168.1.134:5000")
+                    BaseAddress = new Uri("http://192.168.1.132:5000")
                 };
                 httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
                 return httpClient;

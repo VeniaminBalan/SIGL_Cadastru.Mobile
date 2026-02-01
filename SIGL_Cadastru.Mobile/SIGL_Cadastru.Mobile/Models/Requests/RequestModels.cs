@@ -19,6 +19,7 @@ public class CadastralRequestDto
     public DateTime? AtReceptionOn { get; set; }
     public DateTime? IssuedOn { get; set; }
     public DateTime? RejectedOn { get; set; }
+    public bool IsFullyPaid { get; set; }
 }
 
 public class DetailedCadastralRequest
@@ -33,6 +34,9 @@ public class DetailedCadastralRequest
     public string CadastalNumber { get; set; } = string.Empty;
     public string Comment { get; set; } = string.Empty;
     public double TotalPrice { get; set; }
+    public double TotalPayments { get; set; }
+    public bool IsFullyPaid { get; set; }
+    public List<PaymentDto> Payments { get; set; } = new();
     public List<CadastralWork> CadastralWorks { get; set; } = new();
     public List<Document> Documents { get; set; } = new();
     public List<RequestState> States { get; set; } = new();
@@ -108,4 +112,19 @@ public class TreeDto
     public double? Price { get; set; }
     public int? Deadline { get; set; }
     public List<TreeDto>? Childrens { get; set; }
+}
+
+public class PaymentDto
+{
+    public string Id { get; set; } = string.Empty;
+    public double Amount { get; set; }
+    public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class AddPaymentCommand
+{
+    public double Amount { get; set; }
+    public string? Description { get; set; }
+    public DateTime? CreatedAt { get; set; }
 }

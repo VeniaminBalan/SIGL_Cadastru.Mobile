@@ -22,15 +22,23 @@ public class RequestService : BaseApiService, IRequestService
     public async Task<Models.PagedResponse<CadastralRequestDto>> GetRequestsPagedAsync(RequestQueryParameters? parameters = null)
     {
         var client = await GetAuthenticatedClientAsync();
-        var query = parameters != null ? BuildQueryString(new Dictionary<string, string?>
+        var queryParams = new Dictionary<string, string?>();
+        
+        if (parameters != null)
         {
-            ["SearchBy"] = parameters.SearchBy,
-            ["FilterBy"] = parameters.FilterBy,
-            ["PageNumber"] = parameters.PageNumber?.ToString(),
-            ["PageSize"] = parameters.PageSize?.ToString(),
-            ["OrderBy"] = parameters.OrderBy,
-            ["Direction"] = parameters.Direction
-        }) : string.Empty;
+            queryParams["SearchBy"] = parameters.SearchBy;
+            queryParams["FilterBy"] = parameters.FilterBy;
+            queryParams["PageNumber"] = parameters.PageNumber?.ToString();
+            queryParams["PageSize"] = parameters.PageSize?.ToString();
+            queryParams["OrderBy"] = parameters.OrderBy;
+            queryParams["Direction"] = parameters.Direction;
+            if (parameters.IsFullyPaid.HasValue)
+            {
+                queryParams["IsFullyPaid"] = parameters.IsFullyPaid.Value.ToString().ToLower();
+            }
+        }
+        
+        var query = BuildQueryString(queryParams);
 
         var response = await client.GetAsync($"/api/Requests{query}");
         response.EnsureSuccessStatusCode();
@@ -110,5 +118,20 @@ public class RequestService : BaseApiService, IRequestService
         var response = await client.GetAsync("/tree");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<TreeDto>(JsonOptions) ?? new();
+    }
+
+    public async Task<PaymentDto> AddPaymentAsync(string requestId, AddPaymentCommand command)
+    {
+        var client = await GetAuthenticatedClientAsync();
+        var response = await client.PostAsJsonAsync($"/api/Requests/{Uri.EscapeDataString(requestId)}/payments", command, JsonOptions);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<PaymentDto>(JsonOptions) ?? new();
+    }
+
+    public async Task DeletePaymentAsync(string requestId, string paymentId)
+    {
+        var client = await GetAuthenticatedClientAsync();
+        var response = await client.DeleteAsync($"/api/Requests/{Uri.EscapeDataString(requestId)}/payments/{Uri.EscapeDataString(paymentId)}");
+        response.EnsureSuccessStatusCode();
     }
 }
