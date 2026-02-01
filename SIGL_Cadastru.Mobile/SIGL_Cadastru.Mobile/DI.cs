@@ -10,7 +10,9 @@ using SIGL_Cadastru.Mobile.Services.Migrations;
 using SIGL_Cadastru.Mobile.Services.Requests;
 using SIGL_Cadastru.Mobile.Services.Users;
 using SIGL_Cadastru.Mobile.ViewModels;
+using SIGL_Cadastru.Mobile.ViewModels.RequestDetail;
 using SIGL_Cadastru.Mobile.Views;
+using SIGL_Cadastru.Mobile.Views.RequestDetail;
 
 namespace SIGL_Cadastru.Mobile;
 
@@ -83,18 +85,26 @@ public static class DI
         {
             services.AddTransient<LoginViewModel>();
             services.AddTransient<RequestsViewModel>();
-            services.AddTransient<RequestDetailViewModel>();
             services.AddTransient<ClientsViewModel>();
             services.AddTransient<ProfileViewModel>();
+            
+            // RequestDetail ViewModels
+            services.AddTransient<RequestOverviewViewModel>();
+            services.AddTransient<RequestPaymentsViewModel>();
+            services.AddTransient<RequestStatesViewModel>();
         }
 
         public void RegisterViews()
         {
             services.AddTransient<LoginPage>();
             services.AddTransient<RequestsPage>();
-            services.AddTransient<RequestDetailPage>();
             services.AddTransient<ClientsPage>();
             services.AddTransient<ProfilePage>();
+            
+            // RequestDetail Views
+            services.AddTransient<RequestOverviewPage>();
+            services.AddTransient<RequestPaymentsPage>();
+            services.AddTransient<RequestStatesPage>();
         }
     }
 }

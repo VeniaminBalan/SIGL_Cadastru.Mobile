@@ -4,24 +4,24 @@ using SIGL_Cadastru.Mobile.Models.Requests;
 using SIGL_Cadastru.Mobile.Models.Shared;
 using SIGL_Cadastru.Mobile.Services.Requests;
 
-namespace SIGL_Cadastru.Mobile.ViewModels;
+namespace SIGL_Cadastru.Mobile.ViewModels.RequestDetail;
 
-[QueryProperty(nameof(RequestId), nameof(RequestId))]
-public partial class RequestDetailViewModel : ObservableObject
+/// <summary>
+/// ViewModel for managing request payments - handles CRUD operations and validation
+/// </summary>
+[QueryProperty(nameof(Request), nameof(Request))]
+public partial class RequestPaymentsViewModel : ObservableObject
 {
     private readonly IRequestService _requestService;
 
     [ObservableProperty]
-    private string? _requestId;
+    private DetailedCadastralRequest? _request;
 
     [ObservableProperty]
     private bool _isLoading;
 
     [ObservableProperty]
     private string? _errorMessage;
-
-    [ObservableProperty]
-    private DetailedCadastralRequest? _request;
 
     [ObservableProperty]
     private bool _isAddingPayment;
@@ -48,83 +48,43 @@ public partial class RequestDetailViewModel : ObservableObject
         }
     }
 
-    public bool CanIssueRequest => Request?.IsFullyPaid ?? false;
+    public double PaymentProgress => Request != null && Request.TotalPrice > 0
+        ? Request.TotalPayments / Request.TotalPrice
+        : 0;
 
-    public RequestDetailViewModel(IRequestService requestService)
+    public bool CanAddPayment => Request?.Metadata.CurrentState != StateType.Issued;
+
+    public bool CanDeletePayment => Request?.Metadata.CurrentState != StateType.Issued;
+
+    public RequestPaymentsViewModel(IRequestService requestService)
     {
         _requestService = requestService;
-    }
-
-    [RelayCommand]
-    public async Task Initialize()
-    {
-        await LoadRequestAsync();
-    }
-
-    partial void OnRequestIdChanged(string? value)
-    {
-        if (!string.IsNullOrWhiteSpace(value))
-        {
-            _ = LoadRequestAsync();
-        }
     }
 
     partial void OnRequestChanged(DetailedCadastralRequest? value)
     {
         OnPropertyChanged(nameof(RemainingAmount));
         OnPropertyChanged(nameof(PaymentStatus));
-        OnPropertyChanged(nameof(CanIssueRequest));
-    }
-
-    private async Task LoadRequestAsync()
-    {
-        if (string.IsNullOrWhiteSpace(RequestId))
-            return;
-
-        try
-        {
-            IsLoading = true;
-            ErrorMessage = null;
-
-            Request = await _requestService.GetRequestByIdAsync(RequestId);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to load request details: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task DownloadPdf()
-    {
-        if (string.IsNullOrWhiteSpace(RequestId))
-            return;
-
-        try
-        {
-            var pdfStream = await _requestService.GetRequestPdfAsync(RequestId);
-            // TODO: Implement PDF saving/sharing logic
-            await Shell.Current.DisplayAlertAsync("Success", "PDF download feature coming soon", "OK");
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to download PDF: {ex.Message}";
-        }
+        OnPropertyChanged(nameof(PaymentProgress));
+        OnPropertyChanged(nameof(CanAddPayment));
+        OnPropertyChanged(nameof(CanDeletePayment));
     }
 
     [RelayCommand]
     private async Task AddPayment()
     {
-        if (string.IsNullOrWhiteSpace(RequestId) || Request == null)
-            return;
+        if (Request == null) return;
 
+        // Validation
         if (PaymentAmount <= 0)
         {
             PaymentErrorMessage = "Amount must be greater than 0";
+            return;
+        }
+
+        if (PaymentAmount > RemainingAmount)
+        {
+            PaymentErrorMessage = $"Amount cannot exceed remaining balance of {RemainingAmount:F2} MDL";
             return;
         }
 
@@ -145,10 +105,15 @@ public partial class RequestDetailViewModel : ObservableObject
                 Description = PaymentDescription
             };
 
-            await _requestService.AddPaymentAsync(RequestId, command);
-            
-            // Reload request to get updated payment data
-            await LoadRequestAsync();
+            var newPayment = await _requestService.AddPaymentAsync(Request.Id, command);
+
+            // Update local request object
+            Request.Payments.Add(newPayment);
+            Request.TotalPayments += newPayment.Amount;
+            Request.IsFullyPaid = Request.TotalPayments >= Request.TotalPrice;
+
+            // Trigger property change notifications
+            OnRequestChanged(Request);
 
             // Reset form
             PaymentAmount = 0;
@@ -169,39 +134,66 @@ public partial class RequestDetailViewModel : ObservableObject
     [RelayCommand]
     private async Task DeletePayment(PaymentDto payment)
     {
-        if (string.IsNullOrWhiteSpace(RequestId) || Request == null || payment == null)
-            return;
+        if (Request == null || payment == null) return;
 
-        if (Request.Metadata.CurrentState == StateType.Issued)
+        if (!CanDeletePayment)
         {
             await Shell.Current.DisplayAlertAsync("Error", "Cannot delete payments from issued requests", "OK");
             return;
         }
 
         var confirm = await Shell.Current.DisplayAlertAsync(
-            "Confirm Delete", 
-            $"Are you sure you want to delete this payment of {payment.Amount:F2} MDL?", 
-            "Delete", 
+            "Confirm Delete",
+            $"Are you sure you want to delete this payment of {payment.Amount:F2} MDL?",
+            "Delete",
             "Cancel");
 
-        if (!confirm)
-            return;
+        if (!confirm) return;
 
         try
         {
             IsLoading = true;
             ErrorMessage = null;
 
-            await _requestService.DeletePaymentAsync(RequestId, payment.Id);
-            
-            // Reload request to get updated payment data
-            await LoadRequestAsync();
+            await _requestService.DeletePaymentAsync(Request.Id, payment.Id);
+
+            // Update local request object
+            Request.Payments.Remove(payment);
+            Request.TotalPayments -= payment.Amount;
+            Request.IsFullyPaid = Request.TotalPayments >= Request.TotalPrice;
+
+            // Trigger property change notifications
+            OnRequestChanged(Request);
 
             await Shell.Current.DisplayAlertAsync("Success", "Payment deleted successfully", "OK");
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Failed to delete payment: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task Refresh()
+    {
+        if (Request == null) return;
+
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            // Reload request from API
+            var updatedRequest = await _requestService.GetRequestByIdAsync(Request.Id);
+            Request = updatedRequest;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to refresh: {ex.Message}";
         }
         finally
         {

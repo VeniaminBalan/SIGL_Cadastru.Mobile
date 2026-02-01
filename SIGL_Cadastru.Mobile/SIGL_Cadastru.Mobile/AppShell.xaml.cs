@@ -1,4 +1,4 @@
-﻿using SIGL_Cadastru.Mobile.Views;
+﻿using SIGL_Cadastru.Mobile.Views.RequestDetail;
 
 namespace SIGL_Cadastru.Mobile
 {
@@ -8,7 +8,10 @@ namespace SIGL_Cadastru.Mobile
         {
             InitializeComponent();
 
-            Routing.RegisterRoute(nameof(RequestDetailPage), typeof(RequestDetailPage));
+            // Register RequestDetail pages
+            Routing.RegisterRoute(nameof(RequestOverviewPage), typeof(RequestOverviewPage));
+            Routing.RegisterRoute(nameof(RequestPaymentsPage), typeof(RequestPaymentsPage));
+            Routing.RegisterRoute(nameof(RequestStatesPage), typeof(RequestStatesPage));
         }
     }
 }

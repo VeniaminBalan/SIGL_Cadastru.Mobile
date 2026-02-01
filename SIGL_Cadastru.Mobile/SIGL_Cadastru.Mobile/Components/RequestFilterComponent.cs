@@ -49,13 +49,13 @@ public class RequestFilterComponent : BaseContentView
 
     private View BuildSearchBar()
     {
-        return new Frame
+        return new Border
         {
-            Padding = 0,
-            CornerRadius = (float)DesignTokens.BorderRadius.Lg,
-            BorderColor = DesignTokens.Colors.Border,
-            HasShadow = false,
+            StrokeThickness = 1,
+            Stroke = DesignTokens.Colors.Border,
             BackgroundColor = DesignTokens.Colors.Background,
+            StrokeShape = new RoundRectangle { CornerRadius = DesignTokens.BorderRadius.Lg },
+            Padding = 0,
             Content = new HorizontalStackLayout
             {
                 Spacing = DesignTokens.Spacing.Sm,

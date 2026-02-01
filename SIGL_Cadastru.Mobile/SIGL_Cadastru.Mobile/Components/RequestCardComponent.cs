@@ -92,15 +92,10 @@ public class RequestCardComponent : BaseContentView
                         convert: (string? num) => $"Request: {num ?? "N/A"}")
                     .Column(0),
 
-                new Label()
-                    .FontSize(DesignTokens.Typography.FontSizeXl)
-                    .Bind(Label.TextProperty, $"{nameof(Request)}.{nameof(CadastralRequestDto.IsFullyPaid)}", 
-                        source: this,
-                        convert: (bool isPaid) => isPaid ? "✓" : "⚠")
-                    .Bind(Label.TextColorProperty, $"{nameof(Request)}.{nameof(CadastralRequestDto.IsFullyPaid)}", 
-                        source: this,
-                        convert: (bool isPaid) => isPaid ? 
-                            DesignTokens.Colors.Success : DesignTokens.Colors.Warning)
+                new PaymentStatusChipComponent()
+                    .Bind(PaymentStatusChipComponent.IsFullyPaidProperty, 
+                        $"{nameof(Request)}.{nameof(CadastralRequestDto.IsFullyPaid)}", 
+                        source: this)
                     .Column(1)
             }
         };
@@ -131,11 +126,10 @@ public class RequestCardComponent : BaseContentView
             Spacing = DesignTokens.Spacing.Sm,
             Children =
             {
-                new Label()
-                    .FontSize(DesignTokens.Typography.FontSizeXs)
-                    .Bind(Label.TextProperty, $"{nameof(Request)}.{nameof(CadastralRequestDto.CurrentState)}", 
-                        source: this,
-                        convert: (Models.Shared.StateType s) => s.ToString()),
+                new StatusChipComponent()
+                    .Bind(StatusChipComponent.StateProperty, 
+                        $"{nameof(Request)}.{nameof(CadastralRequestDto.CurrentState)}", 
+                        source: this),
 
                 new Label()
                     .FontSize(DesignTokens.Typography.FontSizeXs)

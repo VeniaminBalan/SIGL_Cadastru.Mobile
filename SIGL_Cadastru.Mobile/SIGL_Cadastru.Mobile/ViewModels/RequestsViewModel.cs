@@ -88,7 +88,7 @@ public partial class RequestsViewModel : ObservableObject
     {
         if (request?.Id != null)
         {
-            await Shell.Current.GoToAsync($"RequestDetailPage?RequestId={request.Id}");
+            await Shell.Current.GoToAsync($"RequestOverviewPage?RequestId={request.Id}");
         }
     }
 
