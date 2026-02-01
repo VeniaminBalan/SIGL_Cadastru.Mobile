@@ -15,36 +15,60 @@ public class RequestsPage : BaseContentPage<RequestsViewModel>
 
     protected override View BuildPageContent()
     {
-        return BuildInitialUi();
-    }
-
-    private View BuildInitialUi()
-    {
         return new Grid
         {
             Padding = DesignTokens.Layout.PagePadding,
+            RowSpacing = DesignTokens.Spacing.Md,
             RowDefinitions =
             {
-                new RowDefinition { Height = GridLength.Auto }, // Filter Controls
-                new RowDefinition { Height = GridLength.Auto }, // Error
-                new RowDefinition { Height = GridLength.Star }  // Content
+                new RowDefinition { Height = GridLength.Auto }, // Filter section
+                new RowDefinition { Height = GridLength.Auto }, // Error message
+                new RowDefinition { Height = GridLength.Star }  // Requests list (fills remaining space)
             },
-
             Children =
             {
-                new RequestFilterComponent
+                new ScrollView
                 {
-                    ViewModel = ViewModel,
-                    StateFilterClicked = new Command(async () => await ShowFilterModal()),
-                    PaymentFilterClicked = new Command(async () => await ShowPaymentFilterModal())
+                    Content = new RequestFilterComponent
+                    {
+                        ViewModel = ViewModel,
+                        RemoveFilterCommand = new Command<string>(filter => RemoveFilter(filter))
+                    }
                 }.Row(0),
+                
                 BuildErrorLabel().Row(1),
-                BuildContentArea().Row(2)
+                BuildRequestsList().Row(2)
             }
         };
     }
 
-    private View BuildContentArea()
+    private void RemoveFilter(string filterName)
+    {
+        switch (filterName)
+        {
+            case "Issued":
+                ViewModel.FilterIssued = false;
+                break;
+            case "Rejected":
+                ViewModel.FilterRejected = false;
+                break;
+            case "AtReception":
+                ViewModel.FilterAtReception = false;
+                break;
+            case "InProgress":
+                ViewModel.FilterInProgress = false;
+                break;
+            case "FullyPaid":
+                ViewModel.FilterFullyPaid = false;
+                break;
+            case "Unpaid":
+                ViewModel.FilterUnpaid = false;
+                break;
+        }
+        ViewModel.ApplyFiltersCommand.Execute(null);
+    }
+
+    private View BuildRequestsList()
     {
         return new Grid
         {
@@ -58,61 +82,6 @@ public class RequestsPage : BaseContentPage<RequestsViewModel>
                 }
             }
         };
-    }
-
-    private async Task ShowFilterModal()
-    {
-        var filterPage = new ContentPage
-        {
-            Title = "Filter by State",
-            Content = new StateFilterModalContent
-            {
-                ViewModel = ViewModel,
-                ApplyCommand = new Command(async () =>
-                {
-                    ViewModel.ApplyFiltersCommand.Execute(null);
-                    await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
-                    await Navigation.PopModalAsync();
-                }),
-                ClearCommand = new Command(async () =>
-                {
-                    ViewModel.FilterIssued = false;
-                    ViewModel.FilterRejected = false;
-                    ViewModel.FilterAtReception = false;
-                    ViewModel.FilterInProgress = false;
-                    ViewModel.ApplyFiltersCommand.Execute(null);
-                    await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
-                    await Navigation.PopModalAsync();
-                })
-            }
-        };
-
-        await Navigation.PushModalAsync(new NavigationPage(filterPage));
-    }
-
-    private async Task ShowPaymentFilterModal()
-    {
-        var paymentFilterPage = new ContentPage
-        {
-            Title = "Filter by Payment Status",
-            Content = new PaymentFilterModalContent
-            {
-                ViewModel = ViewModel,
-                ApplyCommand = new Command(async () =>
-                {
-                    await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
-                    await Navigation.PopModalAsync();
-                }),
-                ClearCommand = new Command(async () =>
-                {
-                    ViewModel.ClearPaymentFilterCommand.Execute(null);
-                    await ViewModel.LoadRequestsCommand.ExecuteAsync(null);
-                    await Navigation.PopModalAsync();
-                })
-            }
-        };
-
-        await Navigation.PushModalAsync(new NavigationPage(paymentFilterPage));
     }
 
     protected override void OnAppearing()

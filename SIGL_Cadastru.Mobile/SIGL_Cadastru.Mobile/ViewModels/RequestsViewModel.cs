@@ -56,6 +56,12 @@ public partial class RequestsViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoadingMore;
 
+    [ObservableProperty]
+    private bool _isFilterExpanded;
+
+    [ObservableProperty]
+    private bool _hasActiveFilters;
+
     private int _currentPage = 1;
     private int _totalPages = 1;
     private const int PageSize = 10;
@@ -112,6 +118,7 @@ public partial class RequestsViewModel : ObservableObject
         if (FilterInProgress) filters.Add("InProgress");
         
         FilterBy = filters.Any() ? string.Join(",", filters) : null;
+        UpdateHasActiveFilters();
         await LoadRequestsAsync(); // Reload with new filters
     }
 
@@ -120,11 +127,42 @@ public partial class RequestsViewModel : ObservableObject
     {
         FilterFullyPaid = false;
         FilterUnpaid = false;
+        UpdateHasActiveFilters();
         await LoadRequestsAsync(); // Reload after clearing payment filter
+    }
+
+    [RelayCommand]
+    public async Task ClearAllFilters()
+    {
+        FilterIssued = false;
+        FilterRejected = false;
+        FilterAtReception = false;
+        FilterInProgress = false;
+        FilterFullyPaid = false;
+        FilterUnpaid = false;
+        FilterBy = null;
+        SearchText = null;
+        UpdateHasActiveFilters();
+        await LoadRequestsAsync();
+    }
+
+    [RelayCommand]
+    public void ToggleFilterExpanded()
+    {
+        IsFilterExpanded = !IsFilterExpanded;
+    }
+
+    private void UpdateHasActiveFilters()
+    {
+        HasActiveFilters = FilterIssued || FilterRejected || FilterAtReception || 
+                          FilterInProgress || FilterFullyPaid || FilterUnpaid ||
+                          !string.IsNullOrWhiteSpace(SearchText);
     }
     
     partial void OnSearchTextChanged(string? value)
     {
+        UpdateHasActiveFilters();
+        
         // Debounce search to avoid too many API calls
         _ = Task.Run(async () =>
         {
@@ -134,6 +172,18 @@ public partial class RequestsViewModel : ObservableObject
                 await LoadRequestsAsync();
             }
         });
+    }
+
+    partial void OnOrderByChanged(string value)
+    {
+        // Automatically reload when sort field changes
+        _ = LoadRequestsAsync();
+    }
+
+    partial void OnDirectionChanged(string value)
+    {
+        // Automatically reload when sort direction changes
+        _ = LoadRequestsAsync();
     }
 
     private async Task LoadRequestsAsync(bool loadMore = false)
