@@ -34,6 +34,7 @@ public class ClientDto
     public string Email { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public List<CadastralRequestForClient> Requests { get; set; } = new();
+    public string FullName => $"{FirstName} {LastName}";
 }
 
 public class CreateClientCommand

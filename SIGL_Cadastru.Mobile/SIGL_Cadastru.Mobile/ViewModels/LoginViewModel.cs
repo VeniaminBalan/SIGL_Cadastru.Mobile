@@ -18,9 +18,6 @@ public partial class LoginViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoggedIn;
 
-    [ObservableProperty]
-    private string _fcmToken = "Loading FCM token...";
-
     public LoginViewModel(
         KeycloakAuthService auth, 
         DeviceManager deviceManager,
@@ -29,23 +26,6 @@ public partial class LoginViewModel : ObservableObject
         _auth = auth;
         _deviceManager = deviceManager;
         _logger = logger;
-        LoadFcmToken();
-    }
-
-    private async void LoadFcmToken()
-    {
-        try
-        {
-            await CrossFirebaseCloudMessaging.Current.CheckIfValidAsync();
-            var token = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
-            FcmToken = $"FCM Token: {token}";
-            Console.WriteLine($"FCM token: {token}");
-        }
-        catch (Exception ex)
-        {
-            FcmToken = $"FCM Error: {ex.Message}";
-            Console.WriteLine($"FCM error: {ex.Message}");
-        }
     }
 
     public void UpdateAuthState()

@@ -49,28 +49,20 @@ public class RequestOverviewPage : ContentPage
                             // Request Header Card
                             BuildRequestHeaderCard(),
 
-                            // Quick Actions Card
-                            BuildQuickActionsCard(),
-
-                            // Request Information Card
+                            // Request Info Card
                             BuildRequestInfoCard(),
 
-                            // Client Information Card
+                            // Client Info Card
                             BuildClientInfoCard(),
 
                             // Works Summary Card
                             BuildWorksSummaryCard(),
 
-                            // Documents Card
+                            // Documents Card (collapsed by default)
                             BuildDocumentsCard(),
 
-                            // PDF Download Button
-                            new Button()
-                                .Text("Download PDF")
-                                .StylePrimaryButton()
-                                .Bind(Button.CommandProperty, nameof(RequestOverviewViewModel.DownloadPdfCommand))
-                                .Bind(IsVisibleProperty, nameof(RequestOverviewViewModel.Request), 
-                                      convert: (object? req) => req != null)
+                            // Quick Actions Card
+                            BuildQuickActionsCard()
                         }
                     }
                     .Bind(IsVisibleProperty, nameof(RequestOverviewViewModel.IsLoading), 
@@ -90,54 +82,76 @@ public class RequestOverviewPage : ContentPage
                 Spacing = DesignTokens.Spacing.Md,
                 Children =
                 {
-                    new Label()
-                        .StyleTitle()
-                        .Bind(Label.TextProperty, "Request.Metadata.Number", 
-                              convert: (string? num) => $"Request #{num ?? "N/A"}"),
-
+                    // Title Row
                     new Grid
                     {
                         ColumnDefinitions =
                         {
                             new ColumnDefinition { Width = GridLength.Star },
+                            new ColumnDefinition { Width = GridLength.Auto },
                             new ColumnDefinition { Width = GridLength.Auto }
                         },
+                        ColumnSpacing = DesignTokens.Spacing.Sm,
+                        Children =
+                        {
+                            new Label()
+                                .StyleTitle()
+                                .Bind(Label.TextProperty, "Request.Metadata.Number", 
+                                      convert: (string? num) => $"#{num ?? "N/A"}")
+                                .Column(0),
+
+                            new PaymentStatusChipComponent()
+                                .Bind(PaymentStatusChipComponent.IsFullyPaidProperty, "Request.IsFullyPaid")
+                                .Column(1),
+
+                            new StatusChipComponent()
+                                .Bind(StatusChipComponent.StateProperty, "Request.Metadata.CurrentState")
+                                .Column(2)
+                        }
+                    },
+
+                    // Info Grid
+                    new Grid
+                    {
+                        ColumnDefinitions =
+                        {
+                            new ColumnDefinition { Width = GridLength.Star },
+                            new ColumnDefinition { Width = GridLength.Star }
+                        },
+                        RowDefinitions =
+                        {
+                            new RowDefinition { Height = GridLength.Auto },
+                            new RowDefinition { Height = GridLength.Auto }
+                        },
+                        ColumnSpacing = DesignTokens.Spacing.Md,
+                        RowSpacing = DesignTokens.Spacing.Xs,
                         Children =
                         {
                             new Label()
                                 .StyleCaption()
                                 .Bind(Label.TextProperty, "Request.CadastalNumber", 
-                                      convert: (string? num) => $"Cadastral: {num ?? "N/A"}")
-                                .Column(0),
+                                      convert: (string? num) => $"📍 {num ?? "N/A"}")
+                                .Row(0).Column(0),
 
-                            // Status Badge
-                            new StatusChipComponent()
-                                .Bind(StatusChipComponent.StateProperty, "Request.Metadata.CurrentState")
-                                .Column(1)
-                        }
-                    },
-
-                    // Payment Status Indicator
-                    new Grid
-                    {
-                        ColumnDefinitions =
-                        {
-                            new ColumnDefinition { Width = GridLength.Star },
-                            new ColumnDefinition { Width = GridLength.Auto }
-                        },
-                        Children =
-                        {
                             new Label()
-                                .StyleBody()
-                                .Bind(Label.TextProperty, "Request.TotalPayments", 
-                                      convert: (double paid) => $"Paid: {paid:F2} MDL"),
+                                .StyleCaption()
+                                .Bind(Label.TextProperty, "Request.Client.FullName", 
+                                      convert: (string? name) => $"👤 {name ?? "N/A"}")
+                                .Row(0).Column(1),
+
+                            new Label()
+                                .StyleCaption()
+                                .Bind(Label.TextProperty, "Request.AvailableFrom", 
+                                      convert: (DateTime date) => $"📅 {date:dd/MM/yyyy}")
+                                .Row(1).Column(0),
 
                             new Label()
                                 .StyleBody()
                                 .Font(bold: true)
+                                .StyleSuccess()
                                 .Bind(Label.TextProperty, "Request.TotalPrice", 
-                                      convert: (double total) => $"{total:F2} MDL")
-                                .Column(1)
+                                      convert: (double price) => $"{price:F2} MDL")
+                                .Row(1).Column(1)
                         }
                     }
                 }
@@ -193,38 +207,39 @@ public class RequestOverviewPage : ContentPage
                 Spacing = DesignTokens.Spacing.Md,
                 Children =
                 {
-                    new SectionHeaderComponent { Title = "Request Information" },
+                    new SectionHeaderComponent { Title = "Request Details" },
 
-                    BuildInfoRow("Number:", "Request.Metadata.Number"),
-                    BuildInfoRow("Cadastral Number:", "Request.CadastalNumber"),
-                    BuildInfoRow("Status:", "Request.Metadata.CurrentState"),
-                    BuildInfoRow("Available From:", "Request.AvailableFrom", isDate: true),
-                    BuildInfoRow("Available Until:", "Request.AvailableUntil", isDate: true),
-                    BuildInfoRow("Due To:", "Request.Metadata.DueTo", isDate: true),
-                    BuildInfoRow("Responsible:", "Request.Responsible"),
-                    BuildInfoRow("Performer:", "Request.Performer"),
+                    new InfoFieldComponent { Label = "Responsible" }
+                        .Bind(InfoFieldComponent.ValueProperty, "Request.Responsible"),
 
-                    // Comment section (if present)
-                    new VerticalStackLayout
+                    new InfoFieldComponent { Label = "Performer" }
+                        .Bind(InfoFieldComponent.ValueProperty, "Request.Performer"),
+
+                    new Grid
                     {
-                        Spacing = DesignTokens.Spacing.Xs,
+                        ColumnDefinitions =
+                        {
+                            new ColumnDefinition { Width = GridLength.Star },
+                            new ColumnDefinition { Width = GridLength.Star }
+                        },
+                        ColumnSpacing = DesignTokens.Spacing.Lg,
                         Children =
                         {
-                            new Label()
-                                .StyleLabel()
-                                .Text("Comment:"),
+                            new InfoFieldComponent { Label = "Available Until", UseBodyStyle = false }
+                                .Bind(InfoFieldComponent.ValueProperty, "Request.AvailableUntil", 
+                                    convert: (DateTime date) => date.ToString("dd MMM yyyy"))
+                                .Column(0),
 
-                            new Label()
-                                .StyleBody()
-                                .Bind(Label.TextProperty, "Request.Comment", 
-                                      convert: (string? comment) => string.IsNullOrWhiteSpace(comment) ? "No comment" : comment)
-                                .Bind(Label.TextColorProperty, "Request.Comment", 
-                                      convert: (string? comment) => string.IsNullOrWhiteSpace(comment) 
-                                          ? DesignTokens.Colors.TextSecondary 
-                                          : DesignTokens.Colors.TextPrimary)
+                            new InfoFieldComponent { Label = "Due Date", UseBodyStyle = false }
+                                .Bind(InfoFieldComponent.ValueProperty, "Request.Metadata.DueTo", 
+                                    convert: (DateTime date) => date.ToString("dd MMM yyyy"))
+                                .Column(1)
                         }
-                    }
-                    .Margins(top: DesignTokens.Spacing.Sm)
+                    },
+
+                    new InfoFieldComponent { Label = "Comment", UseBodyStyle = false }
+                        .Bind(InfoFieldComponent.ValueProperty, "Request.Comment", 
+                              convert: (string? comment) => string.IsNullOrWhiteSpace(comment) ? "No comment provided" : comment)
                 }
             }
         };
@@ -239,12 +254,16 @@ public class RequestOverviewPage : ContentPage
                 Spacing = DesignTokens.Spacing.Md,
                 Children =
                 {
-                    new SectionHeaderComponent { Title = "Client Information" },
+                    new SectionHeaderComponent { Title = "Client" },
 
-                    BuildInfoRow("Name:", "Request.Client.FullName"),
-                    BuildInfoRow("Email:", "Request.Client.Email"),
-                    BuildInfoRow("Phone:", "Request.Client.PhoneNumber"),
-                    BuildInfoRow("Address:", "Request.Client.Address")
+                    new InfoFieldComponent { Label = "Full Name" }
+                        .Bind(InfoFieldComponent.ValueProperty, nameof(RequestOverviewViewModel.Request.Client.FullName)),
+
+                    new InfoFieldComponent { Label = "Email", UseBodyStyle = false }
+                        .Bind(InfoFieldComponent.ValueProperty, nameof(RequestOverviewViewModel.Request.Client.Email)),
+
+                    new InfoFieldComponent { Label = "Phone", UseBodyStyle = false }
+                        .Bind(InfoFieldComponent.ValueProperty, nameof(RequestOverviewViewModel.Request.Client.PhoneNumber))
                 }
             }
         };
@@ -259,39 +278,51 @@ public class RequestOverviewPage : ContentPage
                 Spacing = DesignTokens.Spacing.Md,
                 Children =
                 {
-                    new SectionHeaderComponent { Title = "Cadastral Works" },
+                    new Grid
+                    {
+                        ColumnDefinitions =
+                        {
+                            new ColumnDefinition { Width = GridLength.Star },
+                            new ColumnDefinition { Width = GridLength.Auto }
+                        },
+                        Children =
+                        {
+                            new Label().StyleSubtitle().Text("Works").Column(0),
+                            new Label()
+                                .StyleCaption()
+                                .Bind(Label.TextProperty, "Request.CadastralWorks", 
+                                      convert: (object? works) => works is System.Collections.IList list ? $"{list.Count} items" : "0 items")
+                                .Column(1)
+                        }
+                    },
 
                     new CollectionView
                     {
                         ItemTemplate = new DataTemplate(() =>
-                            new Border()
-                                .StyleListItem()
-                                .Invoke(border =>
+                            new Grid
+                            {
+                                ColumnDefinitions =
                                 {
-                                    border.Content = new Grid
-                                    {
-                                        ColumnDefinitions =
-                                        {
-                                            new ColumnDefinition { Width = GridLength.Star },
-                                            new ColumnDefinition { Width = GridLength.Auto }
-                                        },
-                                        Children =
-                                        {
-                                            new Label()
-                                                .StyleBody()
-                                                .Bind(Label.TextProperty, "WorkDescription")
-                                                .Column(0),
+                                    new ColumnDefinition { Width = GridLength.Star },
+                                    new ColumnDefinition { Width = GridLength.Auto }
+                                },
+                                Padding = new Thickness(0, DesignTokens.Spacing.Xs),
+                                Children =
+                                {
+                                    new Label()
+                                        .StyleBody()
+                                        .Bind(Label.TextProperty, "WorkDescription")
+                                        .Column(0),
 
-                                            new Label()
-                                                .StyleBody()
-                                                .Font(bold: true)
-                                                .StyleSuccess()
-                                                .Bind(Label.TextProperty, "Price", 
-                                                      convert: (double price) => $"{price:F2} MDL")
-                                                .Column(1)
-                                        }
-                                    };
-                                })
+                                    new Label()
+                                        .StyleBody()
+                                        .Font(bold: true)
+                                        .StyleSuccess()
+                                        .Bind(Label.TextProperty, "Price", 
+                                              convert: (double price) => $"{price:F2}")
+                                        .Column(1)
+                                }
+                            }
                         )
                     }
                     .Bind(CollectionView.ItemsSourceProperty, "Request.CadastralWorks")
@@ -301,32 +332,9 @@ public class RequestOverviewPage : ContentPage
                     new Label()
                         .StyleCaption()
                         .Text("No works added")
+                        .Center()
                         .Bind(Label.IsVisibleProperty, "Request.CadastralWorks", 
-                              convert: (object? works) => works == null || (works is System.Collections.IList list && list.Count == 0)),
-
-                    // Total Price
-                    new Grid
-                    {
-                        ColumnDefinitions =
-                        {
-                            new ColumnDefinition { Width = GridLength.Star },
-                            new ColumnDefinition { Width = GridLength.Auto }
-                        },
-                        Margin = new Thickness(0, DesignTokens.Spacing.Sm, 0, 0),
-                        Children =
-                        {
-                            new Label()
-                                .StyleSubtitle()
-                                .Text("Total:"),
-
-                            new Label()
-                                .StyleSubtitle()
-                                .StyleSuccess()
-                                .Bind(Label.TextProperty, "Request.TotalPrice", 
-                                      convert: (double price) => $"{price:F2} MDL")
-                                .Column(1)
-                        }
-                    }
+                              convert: (object? works) => works == null || (works is System.Collections.IList list && list.Count == 0))
                 }
             }
         };
@@ -338,67 +346,44 @@ public class RequestOverviewPage : ContentPage
         {
             Content = new VerticalStackLayout
             {
-                Spacing = DesignTokens.Spacing.Md,
+                Spacing = DesignTokens.Spacing.Sm,
                 Children =
                 {
-                    new SectionHeaderComponent { Title = "Documents" },
+                    new Grid
+                    {
+                        ColumnDefinitions =
+                        {
+                            new ColumnDefinition { Width = GridLength.Star },
+                            new ColumnDefinition { Width = GridLength.Auto }
+                        },
+                        Children =
+                        {
+                            new Label().StyleSubtitle().Text("Documents").Column(0),
+                            new Label()
+                                .StyleCaption()
+                                .Bind(Label.TextProperty, "Request.Documents", 
+                                      convert: (object? docs) => docs is System.Collections.IList list ? $"{list.Count} files" : "0 files")
+                                .Column(1)
+                        }
+                    },
 
                     new CollectionView
                     {
                         ItemTemplate = new DataTemplate(() =>
-                            new Border()
-                                .StyleListItem()
-                                .Invoke(border =>
-                                {
-                                    border.Content = new Label()
-                                        .StyleBody()
-                                        .Bind(Label.TextProperty, "Name");
-                                })
+                            new Label()
+                                .StyleCaption()
+                                .Padding(0, DesignTokens.Spacing.Xs)
+                                .Bind(Label.TextProperty, "Name", convert: (string? name) => $"📄 {name ?? "Unnamed"}")
                         )
                     }
                     .Bind(CollectionView.ItemsSourceProperty, "Request.Documents")
                     .Bind(CollectionView.IsVisibleProperty, "Request.Documents", 
-                          convert: (object? docs) => docs != null && docs is System.Collections.IList list && list.Count > 0),
-
-                    new Label()
-                        .StyleCaption()
-                        .Text("No documents attached")
-                        .Bind(Label.IsVisibleProperty, "Request.Documents", 
-                              convert: (object? docs) => docs == null || (docs is System.Collections.IList list && list.Count == 0))
+                          convert: (object? docs) => docs != null && docs is System.Collections.IList list && list.Count > 0)
                 }
             }
-        };
-    }
-
-    private HorizontalStackLayout BuildInfoRow(string label, string bindingPath, bool isDate = false)
-    {
-        var valueLabel = new Label()
-            .StyleBody()
-            .TextColor(DesignTokens.Colors.TextSecondary);
-
-        if (isDate)
-        {
-            valueLabel.Bind(Label.TextProperty, bindingPath, 
-                convert: (DateTime date) => date.ToString("dd/MM/yyyy"));
         }
-        else
-        {
-            valueLabel.Bind(Label.TextProperty, bindingPath, 
-                convert: (object? value) => value?.ToString() ?? "N/A");
-        }
-
-        return new HorizontalStackLayout
-        {
-            Spacing = DesignTokens.Spacing.Sm,
-            Children =
-            {
-                new Label()
-                    .Text(label)
-                    .StyleLabel()
-                    .Invoke(lbl => lbl.WidthRequest = 150),
-                valueLabel
-            }
-        };
+        .Bind(IsVisibleProperty, "Request.Documents", 
+              convert: (object? docs) => docs != null && docs is System.Collections.IList list && list.Count > 0);
     }
 
     protected override void OnAppearing()
