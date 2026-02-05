@@ -465,3 +465,42 @@ MigrationBackup/
 .ionide/
 
 # End of https://www.toptal.com/developers/gitignore/api/dotnetcore,vs,visualstudiocode,rider
+
+### SIGL Cadastru Mobile - Sensitive Data ###
+
+# Firebase/Google Services Configuration (contains API keys)
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# App configuration files (may contain secrets)
+**/appsettings.json
+**/appsettings.*.json
+!**/appsettings.Development.json.example
+
+# Android signing keys
+*.keystore
+*.jks
+key.properties
+
+# iOS signing certificates and provisioning profiles
+*.mobileprovision
+*.p12
+*.cer
+*.certSigningRequest
+
+# macOS keychain files
+*.keychain
+*.keychain-db
+
+# Secrets and credentials
+secrets.json
+**/secrets.*.json
+*.credentials
+
+# Local configuration overrides
+**/local.settings.json

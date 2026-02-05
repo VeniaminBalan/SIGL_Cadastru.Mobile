@@ -31,7 +31,35 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 ---
 
-## 2. Identificarea grupului țintă de utilizatori
+## 2. Capturi de ecran ale aplicației
+
+### 2.1 Autentificare securizată prin Keycloak
+
+<img src="authentication.jpg" alt="Ecran de autentificare" width="250"/>
+
+Ecranul de autentificare folosește Keycloak/OIDC prin browser-ul sistemului, asigurând securitate maximă și suport pentru Single Sign-On (SSO).
+
+### 2.2 Lista de cereri cadastrale
+
+<img src="requests_list.jpg" alt="Lista de cereri" width="250"/>
+
+Pagina principală afișează lista cererilor cu filtrare, căutare și sortare. Utilizatorii pot vedea rapid starea, termenele și detaliile fiecărei cereri.
+
+### 2.3 Detalii complete ale cererii
+
+<img src="request_detail.jpg" alt="Detalii cerere" width="250"/>
+
+Pagina de detalii oferă vizualizare completă: informații client, lucrări cadastrale, documente atașate, timeline cu istoric complet de modificări și toate metadata relevante.
+
+### 2.4 Notificări push în timp real
+
+<img src="notification.jpg" alt="Notificare push" width="250"/>
+
+Notificările Firebase Cloud Messaging informează utilizatorii instant despre schimbările de stare ale cererilor, chiar și atunci când aplicația este închisă.
+
+---
+
+## 3. Identificarea grupului țintă de utilizatori
 
 ### Utilizatori primari:
 1. **Ingineri cadastrali** - accesează cererilor în teren, verifică documentația, actualizează stări
@@ -53,15 +81,15 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 ---
 
-## 3. Descrierea competiției (aplicații similare)
+## 4. Descrierea competiției (aplicații similare)
 
-### 3.1 **GeoWorks Mobile** (SUA/Canada)
+### 4.1 **GeoWorks Mobile** (SUA/Canada)
 - **Descriere:** Aplicație pentru gestionarea lucrărilor de topografie și cadastru
 - **Puncte forte:** Integrare cu echipamente GPS, capturare coordonate în teren
 - **Puncte slabe:** Interfață complexă, licențiere foarte scumpă ($500+/utilizator/an)
 - **Diferențiator SIGL:** Interfață mai simplă, focus pe workflow-ul cererilor, nu pe măsurători
 
-### 3.2 **Cadastral Manager Pro** (Europa)
+### 4.2 **Cadastral Manager Pro** (Europa)
 - **Descriere:** Sistem ERP cadastral cu modul mobile limitat
 - **Puncte forte:** Funcționalități comprehensive pentru birou, raportare avansată
 - **Puncte slabe:** App mobile este doar viewer, fără capacități de editare, offline limitat
@@ -69,7 +97,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 ---
 
-## 4. Descrierea use-case-ului principal
+## 5. Descrierea use-case-ului principal
 
 ### Use-case: **Monitorizarea și actualizarea unei cererilor cadastrale**
 
@@ -150,7 +178,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 ---
 
-## 5. Identificarea modului posibil de monetizare
+## 6. Identificarea modului posibil de monetizare
 
 ### Model de business: **B2B SaaS - Software as a Service pentru companii**
 
@@ -189,9 +217,9 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
 
 ---
 
-## 6. Bibliografie și surse folosite
+## 7. Bibliografie și surse folosite
 
-### 6.1 Framework și tehnologii de bază
+### 7.1 Framework și tehnologii de bază
 1. **Microsoft .NET MAUI Documentation**
    - Sursa: https://learn.microsoft.com/en-us/dotnet/maui/
    - Utilizare: Arhitectură de bază, navigare Shell, platform-specific code
@@ -207,7 +235,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
    - Utilizare: C# Fluent API pentru construirea UI
    - Realizat în plus: Pattern standardizat pentru toate pagini, zero XAML (except AppShell)
 
-### 6.2 Autentificare și securitate
+### 7.2 Autentificare și securitate
 4. **Duende IdentityModel.OidcClient**
    - Sursa: https://docs.duendesoftware.com/identitymodel/
    - Tutorial: https://github.com/IdentityModel/IdentityModel.OidcClient.Samples
@@ -223,7 +251,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
    - Utilizare: Configurare realm, client, scopes
    - Realizat în plus: Custom URL scheme `sigl.mobile://callback`, integrare completă cu MAUI lifecycle
 
-### 6.3 Notificări push și device management
+### 7.3 Notificări push și device management
 6. **Plugin.Firebase for .NET MAUI**
    - Sursa: https://github.com/TobiasBuchholz/Plugin.Firebase
    - Utilizare: Firebase Cloud Messaging pentru push notifications
@@ -238,7 +266,7 @@ Aplicația elimină necesitatea accesului constant la un computer desktop pentru
    - Utilizare: Configurare google-services.json, FCM token handling
    - Realizat în plus: Integrare bidirectională device ↔ backend API pentru tracking sesiuni
 
-### 6.4 Arhitectură și design patterns
+### 7.4 Arhitectură și design patterns
 8. **.NET MAUI Community Samples**
    - Sursa: https://github.com/dotnet/maui-samples
    - Utilizare: Exemple pentru MVVM navigation, Shell routing

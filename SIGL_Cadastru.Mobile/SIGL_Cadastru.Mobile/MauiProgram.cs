@@ -3,8 +3,10 @@ using CommunityToolkit.Maui.Markup;
 using Microsoft.Extensions.Logging;
 using Plugin.Firebase.Auth;
 using Microsoft.Maui.LifecycleEvents;
-
+using Microsoft.Extensions.Configuration;
+using System.Reflection;
 using Plugin.Firebase.Bundled.Shared;
+using SIGL_Cadastru.Mobile.Models;
 
 #if IOS
     using Plugin.Firebase.Bundled.Platforms.iOS;
@@ -33,6 +35,17 @@ public static class MauiProgram
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
+
+        // Load configuration from appsettings.Development.json
+        var assembly = Assembly.GetExecutingAssembly();
+        using var stream = assembly.GetManifestResourceStream("SIGL_Cadastru.Mobile.appsettings.Development.json");
+        var config = new ConfigurationBuilder()
+            .AddJsonStream(stream!)
+            .Build();
+
+        // Register configuration sections
+        builder.Services.Configure<ApiConfiguration>(config.GetSection("ApiConfiguration"));
+        builder.Services.Configure<KeycloakConfiguration>(config.GetSection("KeycloakConfiguration"));
 
         // Register Services
         builder.Services.RegisterServices();

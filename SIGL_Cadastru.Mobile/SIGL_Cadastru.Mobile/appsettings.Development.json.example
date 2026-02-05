@@ -1,0 +1,12 @@
+{
+  "ApiConfiguration": {
+    "BaseUrl": "http://localhost:5000",
+    "Timeout": 30
+  },
+  "KeycloakConfiguration": {
+    "Authority": "https://auth.example.com/realms/your-realm",
+    "ClientId": "your-client-id",
+    "Scope": "openid profile email offline_access",
+    "RedirectUri": "sigl.mobile://callback"
+  }
+}

@@ -1,4 +1,6 @@
 ﻿using Duende.IdentityModel.OidcClient;
+using Microsoft.Extensions.Options;
+using SIGL_Cadastru.Mobile.Models;
 using SIGL_Cadastru.Mobile.Services;
 using SIGL_Cadastru.Mobile.Services.Accounts;
 using SIGL_Cadastru.Mobile.Services.Analytics;
@@ -26,13 +28,14 @@ public static class DI
 
             services.AddSingleton(sp =>
             {
+                var keycloakConfig = sp.GetRequiredService<IOptions<KeycloakConfiguration>>().Value;
                 return new OidcClient(new OidcClientOptions
                 {
-                    Authority = "https://auth.vbtm.live/realms/sigl-dev",
-                    ClientId = "mobile",
-                    Scope = "openid profile email offline_access",
-                    RedirectUri = "sigl.mobile://callback",
-                    PostLogoutRedirectUri = "sigl.mobile://callback",
+                    Authority = keycloakConfig.Authority,
+                    ClientId = keycloakConfig.ClientId,
+                    Scope = keycloakConfig.Scope,
+                    RedirectUri = keycloakConfig.RedirectUri,
+                    PostLogoutRedirectUri = keycloakConfig.RedirectUri,
                     Browser = sp.GetRequiredService<Duende.IdentityModel.OidcClient.Browser.IBrowser>(),
                     LoadProfile = true
                 });
@@ -53,6 +56,7 @@ public static class DI
             // Configure HttpClient for API services with authentication and device tracking
             services.AddSingleton<HttpClient>(sp =>
             {
+                var apiConfig = sp.GetRequiredService<IOptions<ApiConfiguration>>().Value;
                 var authHandler = sp.GetRequiredService<AuthenticatedHttpMessageHandler>();
                 var deviceHandler = sp.GetRequiredService<DeviceHeaderHandler>();
                 
@@ -62,8 +66,8 @@ public static class DI
 
                 var httpClient = new HttpClient(deviceHandler)
                 {
-                    // TODO: Replace with actual API base URL
-                    BaseAddress = new Uri("http://192.168.1.132:5000")
+                    BaseAddress = new Uri(apiConfig.BaseUrl),
+                    Timeout = TimeSpan.FromSeconds(apiConfig.Timeout)
                 };
                 httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
                 return httpClient;
